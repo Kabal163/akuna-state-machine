@@ -1,11 +1,9 @@
 package ru.akuna.service;
 
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import ru.akuna.entity.Order;
 import ru.akuna.statemachine.exception.TransitionNotFoundException;
 
@@ -18,10 +16,9 @@ import static ru.akuna.entity.State.DELIVERED;
 import static ru.akuna.entity.State.NEW;
 import static ru.akuna.entity.State.PAID;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @ActiveProfiles("rus")
-public class OrderServiceImplTest {
+class OrderServiceImplTest {
 
     @Autowired
     OrderService orderService;
