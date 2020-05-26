@@ -9,6 +9,35 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
 
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>
+        Implementation of the "State Machine" pattern.
+        It makes easy to develop services where entities have
+        finite number of states and set of transition rules from
+        one state to another.
+    </description>
+    <url>https://github.com/Kabal163/akuna-state-machine</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Dmitrii Kanaev</name>
+            <email>cs159753@yandex.ru</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/Kabal163/akuna-state-machine.git</connection>
+        <developerConnection>scm:git:ssh://github.com/Kabal163/akuna-state-machine.git</developerConnection>
+        <url>https://github.com/Kabal163/akuna-state-machine/tree/master</url>
+    </scm>
+
     <properties>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
