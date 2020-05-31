@@ -7,4 +7,15 @@
             <password>${env.MAVEN_REPO_PASS}</password>
         </server>
     </servers>
+    <profiles>
+        <profile>
+            <id>ossrh</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <gpg.passphrase>${env.GPG_PASS_PHRASE}</gpg.passphrase>
+            </properties>
+        </profile>
+    </profiles>
 </settings>
