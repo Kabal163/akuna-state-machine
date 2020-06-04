@@ -4,7 +4,7 @@ The state machine is a mathematical model of computation.
 It is an abstract machine that can be in exactly one of a finite number of states at any given time.
 This library helps you to implement the model.
 
-<h4>Terminology</h4>
+<h3>Terminology</h3>
 
 <b><i>Stateful object</i></b> - any entity which implements <code>StatefulObject</code> interface and
 has finite numbers of states.
@@ -25,7 +25,7 @@ the whole transition will be treated as failed.
 <b><i>Condition</i></b> - a rule which determines possibility of transition at this moment. If any condition
 returns false then transition will not be performed.
 
-<h4>If you are using the library without the spring boot starter</h4>
+<h3>If you are using the library without the spring boot starter</h3>
 
     <dependency>
         <groupId>com.github.kabal163</groupId>
@@ -65,7 +65,7 @@ Example:
 
 This method returns <code>TransitionResult</code> which contains information about performed transition.
 
-<h4>If you are using the state-machine-spring-boot-starter</h4>
+<h3>If you are using the state-machine-spring-boot-starter</h3>
 
     <dependency>
         <groupId>com.github.kabal163</groupId>
