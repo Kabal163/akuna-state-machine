@@ -7,7 +7,7 @@ This library helps you to implement the model.
 <h4>Terminology</h4>
 
 <i>Stateful object</i> - any entity which implements <code>StatefulObject</code> interface and
-has finite number of states.
+has finite numbers of states.
 
 <i>Source state</i> - the state of an entity in the moment of starting transition process
 
@@ -41,11 +41,9 @@ It requires <code>TransitionBuilder</code>. You can use the default implementati
 Example:
 
 <p>
-    <code>
-        LifecycleConfiguration config = new MyLifecycleConfiguration();<br>
-        TransitionBuilder transitionBuilder = new TransitionBuilderImpl();<br>
-        LifecycleManager lifecycleManager = new LifecycleManagerImpl(transitionBuilder, config);
-    </code>
+   <code>LifecycleConfiguration config = new MyLifecycleConfiguration();</code><br>
+   <code>TransitionBuilder transitionBuilder = new TransitionBuilderImpl();</code><br>
+   <code>LifecycleManager lifecycleManager = new LifecycleManagerImpl(transitionBuilder, config);</code>
 </p>
 
 In order to perform a transition you need to use the <code>execute</code> method of 
