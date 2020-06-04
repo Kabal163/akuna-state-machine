@@ -59,9 +59,9 @@ share some data between conditions and actions via the state context.
 
 Example:
 
-<p>
-    <code>lifecycleManager.execute(myStatefulObject, MY_EVENT)</code>
-</p>
+
+    lifecycleManager.execute(myStatefulObject, MY_EVENT)
+
 
 This method returns <code>TransitionResult</code> which contains information about performed transition.
 
