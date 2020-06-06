@@ -26,7 +26,7 @@ class TransitionTest {
     Transition<State, Event> transition;
 
     @SuppressWarnings("unchecked")
-    public TransitionTest() {
+    TransitionTest() {
         context = Mockito.mock(StateContext.class);
         firstAction = Mockito.mock(Action.class);
         secondAction = Mockito.mock(Action.class);
