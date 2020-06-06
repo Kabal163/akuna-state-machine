@@ -27,6 +27,7 @@ public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
 
     @Override
     public TransitionConfigurer<S, E> sourceState(S state) {
+        assertConfiguredTransitionIsNotNull();
         configuredTransition.setSourceState(state);
 
         return this;
@@ -34,6 +35,7 @@ public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
 
     @Override
     public TransitionConfigurer<S, E> targetState(S state) {
+        assertConfiguredTransitionIsNotNull();
         configuredTransition.setTargetState(state);
 
         return this;
@@ -41,6 +43,7 @@ public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
 
     @Override
     public TransitionConfigurer<S, E> event(E event) {
+        assertConfiguredTransitionIsNotNull();
         configuredTransition.setEvent(event);
 
         return this;
@@ -48,6 +51,7 @@ public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
 
     @Override
     public TransitionConfigurer<S, E> condition(Condition<S, E> condition) {
+        assertConfiguredTransitionIsNotNull();
         if (condition == null) {
             throw new IllegalArgumentException("Condition must not be null!");
         }
@@ -58,6 +62,7 @@ public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
 
     @Override
     public TransitionConfigurer<S, E> action(Action<S, E> action) {
+        assertConfiguredTransitionIsNotNull();
         if (action == null) {
             throw new IllegalArgumentException("Action must not be null!");
         }
@@ -80,4 +85,12 @@ public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
 
         return new HashSet<>(configuredTransitions);
     }
+
+    private void assertConfiguredTransitionIsNotNull() {
+        if (configuredTransition == null) {
+            throw new IllegalStateException(ERROR_MESSAGE);
+        }
+    }
+
+    private static final String ERROR_MESSAGE = "Bad usage of a TransitionConfigurer. Probably you forget about with() method in start of transition configuration";
 }
