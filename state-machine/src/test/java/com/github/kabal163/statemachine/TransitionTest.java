@@ -5,12 +5,18 @@ import com.github.kabal163.statemachine.api.Condition;
 import com.github.kabal163.statemachine.api.StateContext;
 import com.github.kabal163.statemachine.testimpl.Event;
 import com.github.kabal163.statemachine.testimpl.State;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.IntStream;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
 class TransitionTest {
@@ -99,5 +105,25 @@ class TransitionTest {
 
         Mockito.verify(firstAction, Mockito.times(1)).execute(context);
         Mockito.verify(secondAction, Mockito.times(1)).execute(context);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void actionsOrderMustBeTheSameAsOnConfiguration() {
+        Action<State, Event> thirdAction = Mockito.mock(Action.class);
+        Action<State, Event> fourthAction = Mockito.mock(Action.class);
+
+        transition.addAction(firstAction);
+        transition.addAction(secondAction);
+        transition.addAction(thirdAction);
+        transition.addAction(fourthAction);
+
+        List<Action<State, Event>> expectedActions = List.of(firstAction, secondAction, thirdAction, fourthAction);
+        List<Action<State, Event>> actualActions = new ArrayList<>(transition.getActions());
+
+        boolean result = IntStream.range(0, 4)
+                .allMatch(i -> Objects.equals(expectedActions.get(i), actualActions.get(i)));
+
+        assertTrue(result);
     }
 }
