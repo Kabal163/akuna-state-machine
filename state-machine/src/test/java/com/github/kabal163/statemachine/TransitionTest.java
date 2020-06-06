@@ -90,4 +90,14 @@ class TransitionTest {
 
         Assertions.assertThrows(RuntimeException.class, () -> transition.transit(context));
     }
+
+    @Test
+    void eachActionMustBeInvoked() {
+        transition.addAction(firstAction);
+        transition.addAction(secondAction);
+        transition.transit(context);
+
+        Mockito.verify(firstAction, Mockito.times(1)).execute(context);
+        Mockito.verify(secondAction, Mockito.times(1)).execute(context);
+    }
 }
