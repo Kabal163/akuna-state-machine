@@ -6,6 +6,7 @@ import com.github.kabal163.statemachine.api.StateContext;
 import com.github.kabal163.statemachine.testimpl.Event;
 import com.github.kabal163.statemachine.testimpl.State;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -40,7 +41,10 @@ class TransitionTest {
         Mockito.doThrow(RuntimeException.class).when(failedAction).execute(context);
         Mockito.when(successCondition.evaluate(context)).thenReturn(true);
         Mockito.when(failedCondition.evaluate(context)).thenReturn(false);
+    }
 
+    @BeforeEach
+    void setUp() {
         transition = new Transition<>();
     }
 
