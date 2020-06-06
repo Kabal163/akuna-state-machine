@@ -59,7 +59,7 @@ class TransitionTest {
         transition.addCondition(failedCondition);
         boolean actualResult = transition.transit(context);
 
-        Assertions.assertFalse(actualResult);
+        assertFalse(actualResult);
     }
 
     @Test
@@ -67,7 +67,7 @@ class TransitionTest {
         transition.addCondition(successCondition);
         boolean actualResult = transition.transit(context);
 
-        Assertions.assertTrue(actualResult);
+        assertTrue(actualResult);
     }
 
     @Test
@@ -76,7 +76,7 @@ class TransitionTest {
         transition.addCondition(successCondition);
         boolean actualResult = transition.transit(context);
 
-        Assertions.assertFalse(actualResult);
+        assertFalse(actualResult);
     }
 
     @Test
@@ -85,20 +85,20 @@ class TransitionTest {
         transition.addAction(secondAction);
         boolean actualResult = transition.transit(context);
 
-        Assertions.assertTrue(actualResult);
+        assertTrue(actualResult);
     }
 
     @Test
-    void transitionThrowsExceptionIfAnyActionIsFailed() {
+    void exceptionIfAnyActionIsFailed() {
         transition.addAction(firstAction);
         transition.addAction(secondAction);
         transition.addAction(failedAction);
 
-        Assertions.assertThrows(RuntimeException.class, () -> transition.transit(context));
+        assertThrows(RuntimeException.class, () -> transition.transit(context));
     }
 
     @Test
-    void eachActionMustBeInvoked() {
+    void eachActionMustBeCalled() {
         transition.addAction(firstAction);
         transition.addAction(secondAction);
         transition.transit(context);
