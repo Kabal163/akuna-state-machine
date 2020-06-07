@@ -49,6 +49,7 @@ Example:
     LifecycleConfiguration config = new MyLifecycleConfiguration();
     TransitionBuilder transitionBuilder = new TransitionBuilderImpl();
     LifecycleManager lifecycleManager = new LifecycleManagerImpl(transitionBuilder, config);
+    lifecycleManager.init();
 
 
 In order to perform a transition you need to use the <code>execute</code> method of 
