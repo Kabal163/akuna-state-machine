@@ -27,6 +27,8 @@ import static com.github.kabal163.statemachine.testimpl.State.CANCELED;
 import static com.github.kabal163.statemachine.testimpl.State.NEW;
 import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,30 +39,30 @@ class LifecycleManagerImplTest {
 
     LifecycleConfiguration<State, Event> lifecycleConfiguration;
     TransitionBuilder<State, Event> transitionBuilder;
-    Transition<State, Event> transitionA;
-    Transition<State, Event> transitionB;
+    Transition<State, Event> approveTransition;
+    Transition<State, Event> cancelTransition;
 
     @SuppressWarnings("unchecked")
     LifecycleManagerImplTest() {
         lifecycleConfiguration = Mockito.mock(LifecycleConfiguration.class);
         transitionBuilder = Mockito.mock(TransitionBuilder.class);
-        transitionA = Mockito.mock(Transition.class);
-        transitionB = Mockito.mock(Transition.class);
+        approveTransition = Mockito.mock(Transition.class);
+        cancelTransition = Mockito.mock(Transition.class);
     }
 
     @BeforeEach
     void setUp() {
-        Mockito.when(transitionA.getSourceState()).thenReturn(NEW);
-        Mockito.when(transitionA.getTargetState()).thenReturn(APPROVED);
-        Mockito.when(transitionA.getEvent()).thenReturn(APPROVE);
-        Mockito.when(transitionA.transit(any())).thenReturn(true);
+        Mockito.when(approveTransition.getSourceState()).thenReturn(NEW);
+        Mockito.when(approveTransition.getTargetState()).thenReturn(APPROVED);
+        Mockito.when(approveTransition.getEvent()).thenReturn(APPROVE);
+        Mockito.when(approveTransition.transit(any())).thenReturn(true);
 
-        Mockito.when(transitionB.getSourceState()).thenReturn(NEW);
-        Mockito.when(transitionB.getTargetState()).thenReturn(CANCELED);
-        Mockito.when(transitionB.getEvent()).thenReturn(CANCEL);
-        Mockito.when(transitionB.transit(any())).thenReturn(true);
+        Mockito.when(cancelTransition.getSourceState()).thenReturn(NEW);
+        Mockito.when(cancelTransition.getTargetState()).thenReturn(CANCELED);
+        Mockito.when(cancelTransition.getEvent()).thenReturn(CANCEL);
+        Mockito.when(cancelTransition.transit(any())).thenReturn(true);
 
-        Mockito.when(transitionBuilder.buildTransitions()).thenReturn(Set.of(transitionA, transitionB));
+        Mockito.when(transitionBuilder.buildTransitions()).thenReturn(Set.of(approveTransition, cancelTransition));
 
         lifecycleManager = new LifecycleManagerImpl<>(transitionBuilder, lifecycleConfiguration);
         lifecycleManager.init();
@@ -82,8 +84,8 @@ class LifecycleManagerImplTest {
 
         lifecycleManager.execute(statefulObject, APPROVE);
 
-        Mockito.verify(transitionA, Mockito.times(1)).transit(any());
-        Mockito.verify(transitionB, Mockito.times(0)).transit(any());
+        Mockito.verify(approveTransition, Mockito.times(1)).transit(any());
+        Mockito.verify(cancelTransition, Mockito.times(0)).transit(any());
     }
 
     @Test
@@ -95,8 +97,8 @@ class LifecycleManagerImplTest {
 
         lifecycleManager.execute(statefulObject, CANCEL);
 
-        Mockito.verify(transitionA, Mockito.times(0)).transit(any());
-        Mockito.verify(transitionB, Mockito.times(1)).transit(any());
+        Mockito.verify(approveTransition, Mockito.times(0)).transit(any());
+        Mockito.verify(cancelTransition, Mockito.times(1)).transit(any());
     }
 
     @Test
@@ -107,7 +109,7 @@ class LifecycleManagerImplTest {
         Mockito.doNothing().when(statefulObject).setState(any());
 
         ArgumentCaptor<StateContext<State, Event>> contextCaptor = ArgumentCaptor.forClass(StateContext.class);
-        Mockito.when(transitionA.transit(contextCaptor.capture())).thenReturn(true);
+        Mockito.when(approveTransition.transit(contextCaptor.capture())).thenReturn(true);
 
         lifecycleManager.execute(statefulObject, APPROVE);
         StateContext<State, Event> context = contextCaptor.getValue();
@@ -123,7 +125,7 @@ class LifecycleManagerImplTest {
         Mockito.doNothing().when(statefulObject).setState(any());
 
         ArgumentCaptor<StateContext<State, Event>> contextCaptor = ArgumentCaptor.forClass(StateContext.class);
-        Mockito.when(transitionA.transit(contextCaptor.capture())).thenReturn(true);
+        Mockito.when(approveTransition.transit(contextCaptor.capture())).thenReturn(true);
 
         lifecycleManager.execute(statefulObject, APPROVE);
         StateContext<State, Event> context = contextCaptor.getValue();
@@ -139,7 +141,7 @@ class LifecycleManagerImplTest {
         Mockito.doNothing().when(statefulObject).setState(any());
 
         ArgumentCaptor<StateContext<State, Event>> contextCaptor = ArgumentCaptor.forClass(StateContext.class);
-        Mockito.when(transitionA.transit(contextCaptor.capture())).thenReturn(true);
+        Mockito.when(approveTransition.transit(contextCaptor.capture())).thenReturn(true);
         Map<String, Object> variables = singletonMap("testKey", "testValue");
 
         lifecycleManager.execute(statefulObject, APPROVE, variables);
@@ -156,7 +158,7 @@ class LifecycleManagerImplTest {
         Mockito.doNothing().when(statefulObject).setState(any());
 
         ArgumentCaptor<StateContext<State, Event>> contextCaptor = ArgumentCaptor.forClass(StateContext.class);
-        Mockito.when(transitionA.transit(contextCaptor.capture())).thenReturn(true);
+        Mockito.when(approveTransition.transit(contextCaptor.capture())).thenReturn(true);
 
         lifecycleManager.execute(statefulObject, APPROVE);
         StateContext<State, Event> context = contextCaptor.getValue();
@@ -168,7 +170,7 @@ class LifecycleManagerImplTest {
     @Test
     @SuppressWarnings("unchecked")
     void exceptionDueToAmbiguousTransition() {
-        Mockito.when(transitionB.getEvent()).thenReturn(APPROVE);
+        Mockito.when(cancelTransition.getEvent()).thenReturn(APPROVE);
 
         StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
         Mockito.when(statefulObject.getState()).thenReturn(NEW);
@@ -185,6 +187,93 @@ class LifecycleManagerImplTest {
         Mockito.doNothing().when(statefulObject).setState(any());
 
         assertThrows(TransitionNotFoundException.class, () -> lifecycleManager.execute(statefulObject, APPROVE));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void transitionResultContainsExceptionIfItHappened() {
+        Mockito.when(approveTransition.transit(any())).thenThrow(RuntimeException.class);
+
+        StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
+        Mockito.when(statefulObject.getState()).thenReturn(NEW);
+        Mockito.doNothing().when(statefulObject).setState(any());
+
+        TransitionResult<State, Event> result = lifecycleManager.execute(statefulObject, APPROVE);
+
+        assertNotNull(result.getException());
+        assertEquals(RuntimeException.class, result.getException().getClass());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void transitionResultSuccessIsFalseIfTransitionReturnsFalse() {
+        Mockito.when(approveTransition.transit(any())).thenReturn(false);
+
+        StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
+        Mockito.when(statefulObject.getState()).thenReturn(NEW);
+        Mockito.doNothing().when(statefulObject).setState(any());
+
+        TransitionResult<State, Event> result = lifecycleManager.execute(statefulObject, APPROVE);
+
+        assertFalse(result.isSuccess());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void transitionResultSuccessIsFalseIfTransitionThrowsException() {
+        Mockito.when(approveTransition.transit(any())).thenThrow(RuntimeException.class);
+
+        StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
+        Mockito.when(statefulObject.getState()).thenReturn(NEW);
+        Mockito.doNothing().when(statefulObject).setState(any());
+
+        TransitionResult<State, Event> result = lifecycleManager.execute(statefulObject, APPROVE);
+
+        assertFalse(result.isSuccess());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void stateMustBeChangedOnTargetIfTransitionIsSuccessful() {
+        ArgumentCaptor<State> stateCaptor = ArgumentCaptor.forClass(State.class);
+        StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
+        Mockito.when(statefulObject.getState()).thenReturn(NEW);
+        Mockito.doNothing().when(statefulObject).setState(stateCaptor.capture());
+
+        lifecycleManager.execute(statefulObject, APPROVE);
+
+        State actualTargetState = stateCaptor.getValue();
+        State expectedTargetState = approveTransition.getTargetState();
+
+        assertEquals(expectedTargetState, actualTargetState);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void stateMustNotBeChangedIfTransitionReturnsFalse() {
+        Mockito.when(approveTransition.transit(any())).thenReturn(false);
+
+        StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
+        Mockito.when(statefulObject.getState()).thenReturn(NEW);
+        Mockito.doNothing().when(statefulObject).setState(any());
+
+        lifecycleManager.execute(statefulObject, APPROVE);
+
+        Mockito.verify(statefulObject, Mockito.times(0)).setState(approveTransition.getTargetState());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void stateMustNotBeChangedIfTransitionThrowsException() {
+        Mockito.when(approveTransition.transit(any())).thenThrow(RuntimeException.class);
+
+        StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
+        Mockito.when(statefulObject.getState()).thenReturn(NEW);
+        Mockito.doNothing().when(statefulObject).setState(any());
+
+        lifecycleManager.execute(statefulObject, APPROVE);
+
+        Mockito.verify(statefulObject, Mockito.times(0)).setState(approveTransition.getTargetState());
     }
 
     @SuppressWarnings("unchecked")
