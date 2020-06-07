@@ -11,4 +11,5 @@ public class TransitionResult<S, E> {
     private final StateContext<S, E> stateContext;
     private final S sourceState;
     private final S targetState;
+    private final Exception exception;
 }
