@@ -4,6 +4,8 @@ import com.github.kabal163.statemachine.api.LifecycleConfiguration;
 import com.github.kabal163.statemachine.api.StateContext;
 import com.github.kabal163.statemachine.api.StatefulObject;
 import com.github.kabal163.statemachine.api.TransitionResult;
+import com.github.kabal163.statemachine.exception.AmbiguousTransitionException;
+import com.github.kabal163.statemachine.exception.TransitionNotFoundException;
 import com.github.kabal163.statemachine.testimpl.Event;
 import com.github.kabal163.statemachine.testimpl.State;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +27,7 @@ import static com.github.kabal163.statemachine.testimpl.State.CANCELED;
 import static com.github.kabal163.statemachine.testimpl.State.NEW;
 import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -43,7 +46,10 @@ class LifecycleManagerImplTest {
         transitionBuilder = Mockito.mock(TransitionBuilder.class);
         transitionA = Mockito.mock(Transition.class);
         transitionB = Mockito.mock(Transition.class);
+    }
 
+    @BeforeEach
+    void setUp() {
         Mockito.when(transitionA.getSourceState()).thenReturn(NEW);
         Mockito.when(transitionA.getTargetState()).thenReturn(APPROVED);
         Mockito.when(transitionA.getEvent()).thenReturn(APPROVE);
@@ -55,10 +61,7 @@ class LifecycleManagerImplTest {
         Mockito.when(transitionB.transit(any())).thenReturn(true);
 
         Mockito.when(transitionBuilder.buildTransitions()).thenReturn(Set.of(transitionA, transitionB));
-    }
 
-    @BeforeEach
-    void setUp() {
         lifecycleManager = new LifecycleManagerImpl<>(transitionBuilder, lifecycleConfiguration);
         lifecycleManager.init();
     }
@@ -143,6 +146,45 @@ class LifecycleManagerImplTest {
         StateContext<State, Event> context = contextCaptor.getValue();
 
         assertEquals("testValue", context.getVariable("testKey", String.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void contextVariablesMustBeAppendable() {
+        StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
+        Mockito.when(statefulObject.getState()).thenReturn(NEW);
+        Mockito.doNothing().when(statefulObject).setState(any());
+
+        ArgumentCaptor<StateContext<State, Event>> contextCaptor = ArgumentCaptor.forClass(StateContext.class);
+        Mockito.when(transitionA.transit(contextCaptor.capture())).thenReturn(true);
+
+        lifecycleManager.execute(statefulObject, APPROVE);
+        StateContext<State, Event> context = contextCaptor.getValue();
+        context.putVariable("testKey", "testValue");
+
+        assertEquals("testValue", context.getVariable("testKey", String.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void exceptionDueToAmbiguousTransition() {
+        Mockito.when(transitionB.getEvent()).thenReturn(APPROVE);
+
+        StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
+        Mockito.when(statefulObject.getState()).thenReturn(NEW);
+        Mockito.doNothing().when(statefulObject).setState(any());
+
+        assertThrows(AmbiguousTransitionException.class, () -> lifecycleManager.execute(statefulObject, APPROVE));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void exceptionDueToNoSuchTransition() {
+        StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
+        Mockito.when(statefulObject.getState()).thenReturn(APPROVED);
+        Mockito.doNothing().when(statefulObject).setState(any());
+
+        assertThrows(TransitionNotFoundException.class, () -> lifecycleManager.execute(statefulObject, APPROVE));
     }
 
     @SuppressWarnings("unchecked")
