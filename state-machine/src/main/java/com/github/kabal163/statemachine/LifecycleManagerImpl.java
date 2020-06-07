@@ -1,6 +1,5 @@
 package com.github.kabal163.statemachine;
 
-import com.github.kabal163.statemachine.api.ContextConstants;
 import com.github.kabal163.statemachine.api.LifecycleConfiguration;
 import com.github.kabal163.statemachine.api.LifecycleManager;
 import com.github.kabal163.statemachine.api.StateContext;
@@ -16,8 +15,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.Optional.ofNullable;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -43,6 +40,7 @@ public class LifecycleManagerImpl<S, E> implements LifecycleManager<S, E> {
         Transition<S, E> transition = getMatchingTransition(statefulObject, event);
         StateContext<S, E> context = new StateContext<>(statefulObject, event, variables);
         boolean success = false;
+        Exception exception = null;
 
         try {
             success = transition.transit(context);
@@ -53,11 +51,7 @@ public class LifecycleManagerImpl<S, E> implements LifecycleManager<S, E> {
                     event,
                     statefulObject.getId(),
                     ex);
-
-            context.putIfAbsentVariable(
-                    ContextConstants.ERROR_MESSAGE,
-                    ofNullable(ex.getMessage())
-                            .orElse(ex.getClass().getCanonicalName()));
+            exception = ex;
         }
 
         if (success) {
@@ -68,7 +62,8 @@ public class LifecycleManagerImpl<S, E> implements LifecycleManager<S, E> {
                 success,
                 context,
                 transition.getSourceState(),
-                transition.getTargetState());
+                transition.getTargetState(),
+                exception);
     }
 
     private Transition<S, E> getMatchingTransition(StatefulObject<S> statefulObject, E event) {
