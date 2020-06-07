@@ -1,7 +1,5 @@
 package com.github.kabal163.statemachine;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import com.github.kabal163.statemachine.api.ContextConstants;
 import com.github.kabal163.statemachine.api.LifecycleConfiguration;
 import com.github.kabal163.statemachine.api.LifecycleManager;
@@ -10,13 +8,15 @@ import com.github.kabal163.statemachine.api.StatefulObject;
 import com.github.kabal163.statemachine.api.TransitionResult;
 import com.github.kabal163.statemachine.exception.AmbiguousTransitionException;
 import com.github.kabal163.statemachine.exception.TransitionNotFoundException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 
 @Slf4j
@@ -35,7 +35,7 @@ public class LifecycleManagerImpl<S, E> implements LifecycleManager<S, E> {
 
     @Override
     public TransitionResult<S, E> execute(StatefulObject<S> statefulObject, E event) {
-        return execute(statefulObject, event, emptyMap());
+        return execute(statefulObject, event, new HashMap<>());
     }
 
     @Override

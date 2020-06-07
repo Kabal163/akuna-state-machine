@@ -1,19 +1,15 @@
 package com.github.kabal163.statemachine.api;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor
-@AllArgsConstructor
 public class StateContext<S, E> {
 
     private final StatefulObject<S> statefulObject;
     private final E event;
-
-    private Map<String, Object> variables = new HashMap<>();
+    private final Map<String, Object> variables;
 
     public void putVariable(String key, Object value) {
         variables.put(key, value);
@@ -43,9 +39,5 @@ public class StateContext<S, E> {
 
     public E getEvent() {
         return event;
-    }
-
-    public void setVariables(Map<String, Object> variables) {
-        this.variables = new HashMap<>(variables);
     }
 }
