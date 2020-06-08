@@ -77,7 +77,7 @@ class LifecycleManagerImplTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void transitionAMustBeUsed() {
+    void approvedTransitionMustBeUsed() {
         StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
         Mockito.when(statefulObject.getState()).thenReturn(NEW);
         Mockito.doNothing().when(statefulObject).setState(any());
@@ -90,7 +90,7 @@ class LifecycleManagerImplTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void transitionBMustBeUsed() {
+    void cancelTransitionMustBeUsed() {
         StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
         Mockito.when(statefulObject.getState()).thenReturn(NEW);
         Mockito.doNothing().when(statefulObject).setState(any());
@@ -206,7 +206,7 @@ class LifecycleManagerImplTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void transitionResultSuccessIsFalseIfTransitionReturnsFalse() {
+    void transitionResultIsNotSuccessfulIfTransitionReturnsFalse() {
         Mockito.when(approveTransition.transit(any())).thenReturn(false);
 
         StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
@@ -220,7 +220,7 @@ class LifecycleManagerImplTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void transitionResultSuccessIsFalseIfTransitionThrowsException() {
+    void transitionResultIsNotSuccessfulIfTransitionThrowsException() {
         Mockito.when(approveTransition.transit(any())).thenThrow(RuntimeException.class);
 
         StatefulObject<State> statefulObject = Mockito.mock(StatefulObject.class);
