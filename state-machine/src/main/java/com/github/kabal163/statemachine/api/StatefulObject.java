@@ -2,7 +2,7 @@ package com.github.kabal163.statemachine.api;
 
 public interface StatefulObject<S> {
 
-    String getId();
+    <T> T getId();
 
     S getState();
 
