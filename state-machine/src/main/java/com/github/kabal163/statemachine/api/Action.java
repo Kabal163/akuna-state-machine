@@ -1,7 +1,7 @@
 package com.github.kabal163.statemachine.api;
 
 /**
- * The interface provides simple abstraction for a unit of work
+ * The interface provides simple abstraction for a piece of work
  * which should be performed to transit a stateful object to the
  * target state according the event. If any action fails then
  * the whole transition should be treated as failed.

@@ -33,7 +33,7 @@ public interface LifecycleManager<S, E> {
 
     /**
      * Executes a transition of the stateful object according the event.
-     * The method contains an additional map of variables parameter which is
+     * The method contains an additional map of variables which is
      * used in the actions and conditions during a transition.
      *
      * @param statefulObject an object which state should be changed with
@@ -42,7 +42,7 @@ public interface LifecycleManager<S, E> {
      * @param variables any external data which is necessary during transition performance
      * @return {@link TransitionResult} transition result containing information
      * about executed transition
-     * @throws TransitionNotFoundException if no transition was found for corresponding
+     * @throws TransitionNotFoundException if no transition was found for the corresponding
      * stateful object's source state and event
      * @throws AmbiguousTransitionException if there are more then one matching transitions
      */

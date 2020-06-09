@@ -4,6 +4,13 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
 
+/**
+ * Contains information about the transition. It helps to share
+ * information between actions and conditions.
+ *
+ * @param <S> a state of a stateful object
+ * @param <E> an event which triggers a transition
+ */
 @RequiredArgsConstructor
 public class StateContext<S, E> {
 
