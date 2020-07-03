@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
-public class LifecycleManagerImpl<S, E> implements LifecycleManager<S, E> {
+public class LifecycleManagerImpl implements LifecycleManager {
 
-    private final TransitionBuilder<S, E> transitionBuilder;
-    private final LifecycleConfiguration<S, E> lifecycleConfiguration;
+    private final TransitionBuilder transitionBuilder;
+    private final LifecycleConfiguration lifecycleConfiguration;
 
-    private Set<Transition<S, E>> transitions;
+    private Set<Transition> transitions;
 
     public void init() {
         lifecycleConfiguration.configureTransitions(transitionBuilder);
@@ -31,14 +31,14 @@ public class LifecycleManagerImpl<S, E> implements LifecycleManager<S, E> {
     }
 
     @Override
-    public TransitionResult<S, E> execute(StatefulObject<S> statefulObject, E event) {
+    public TransitionResult execute(StatefulObject statefulObject, String event) {
         return execute(statefulObject, event, new HashMap<>());
     }
 
     @Override
-    public TransitionResult<S, E> execute(StatefulObject<S> statefulObject, E event, Map<String, Object> variables) {
-        Transition<S, E> transition = getMatchingTransition(statefulObject, event);
-        StateContext<S, E> context = new StateContext<>(statefulObject, event, variables);
+    public TransitionResult execute(StatefulObject statefulObject, String event, Map<String, Object> variables) {
+        Transition transition = getMatchingTransition(statefulObject, event);
+        StateContext context = new StateContext(statefulObject, event, variables);
         boolean success = false;
         Exception exception = null;
 
@@ -58,7 +58,7 @@ public class LifecycleManagerImpl<S, E> implements LifecycleManager<S, E> {
             statefulObject.setState(transition.getTargetState());
         }
 
-        return new TransitionResult<>(
+        return new TransitionResult(
                 success,
                 context,
                 transition.getSourceState(),
@@ -66,10 +66,10 @@ public class LifecycleManagerImpl<S, E> implements LifecycleManager<S, E> {
                 exception);
     }
 
-    private Transition<S, E> getMatchingTransition(StatefulObject<S> statefulObject, E event) {
-        S sourceState = statefulObject.getState();
+    private Transition getMatchingTransition(StatefulObject statefulObject, String event) {
+        String sourceState = statefulObject.getState();
 
-        Set<Transition<S, E>> matchTransitions = transitions.stream()
+        Set<Transition> matchTransitions = transitions.stream()
                 .filter(t -> Objects.equals(t.getSourceState(), sourceState))
                 .filter(t -> Objects.equals(t.getEvent(), event))
                 .collect(Collectors.toSet());

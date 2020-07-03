@@ -12,21 +12,21 @@ import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 
 @Slf4j
 @RequiredArgsConstructor
-public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
+public class TransitionBuilderImpl implements TransitionBuilder {
 
-    private final Set<Transition<S, E>> configuredTransitions = new HashSet<>();
-    private Transition<S, E> configuredTransition;
+    private final Set<Transition> configuredTransitions = new HashSet<>();
+    private Transition configuredTransition;
 
     @Override
-    public TransitionConfigurer<S, E> with() {
-        configuredTransition = new Transition<>();
+    public TransitionConfigurer with() {
+        configuredTransition = new Transition();
         configuredTransitions.add(configuredTransition);
 
         return this;
     }
 
     @Override
-    public TransitionConfigurer<S, E> sourceState(S state) {
+    public TransitionConfigurer sourceState(String state) {
         assertConfiguredTransitionIsNotNull();
         configuredTransition.setSourceState(state);
 
@@ -34,7 +34,7 @@ public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
     }
 
     @Override
-    public TransitionConfigurer<S, E> targetState(S state) {
+    public TransitionConfigurer targetState(String state) {
         assertConfiguredTransitionIsNotNull();
         configuredTransition.setTargetState(state);
 
@@ -42,7 +42,7 @@ public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
     }
 
     @Override
-    public TransitionConfigurer<S, E> event(E event) {
+    public TransitionConfigurer event(String event) {
         assertConfiguredTransitionIsNotNull();
         configuredTransition.setEvent(event);
 
@@ -50,7 +50,7 @@ public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
     }
 
     @Override
-    public TransitionConfigurer<S, E> condition(Condition<S, E> condition) {
+    public TransitionConfigurer condition(Condition condition) {
         assertConfiguredTransitionIsNotNull();
         if (condition == null) {
             throw new IllegalArgumentException("Condition must not be null!");
@@ -61,7 +61,7 @@ public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
     }
 
     @Override
-    public TransitionConfigurer<S, E> action(Action<S, E> action) {
+    public TransitionConfigurer action(Action action) {
         assertConfiguredTransitionIsNotNull();
         if (action == null) {
             throw new IllegalArgumentException("Action must not be null!");
@@ -72,8 +72,8 @@ public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
     }
 
     @Override
-    public Set<Transition<S, E>> buildTransitions() {
-        for (Transition<S, E> transition : configuredTransitions) {
+    public Set<Transition> buildTransitions() {
+        for (Transition transition : configuredTransitions) {
             if (!allNotNull(
                     transition.getSourceState(),
                     transition.getTargetState(),

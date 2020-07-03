@@ -7,15 +7,12 @@ import java.util.Map;
 /**
  * Contains information about the transition. It helps to share
  * information between actions and conditions.
- *
- * @param <S> a state of a stateful object
- * @param <E> an event which triggers a transition
  */
 @RequiredArgsConstructor
-public class StateContext<S, E> {
+public class StateContext {
 
-    private final StatefulObject<S> statefulObject;
-    private final E event;
+    private final StatefulObject statefulObject;
+    private final String event;
     private final Map<String, Object> variables;
 
     public void putVariable(String key, Object value) {
@@ -44,7 +41,7 @@ public class StateContext<S, E> {
         return (T) statefulObject;
     }
 
-    public E getEvent() {
+    public String getEvent() {
         return event;
     }
 }

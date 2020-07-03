@@ -14,9 +14,9 @@ public class StateMachineAutoConfiguration {
 
     @Bean
     @ConditionalOnBean({LifecycleConfiguration.class})
-    public <S, E> LifecycleManager<?, ?> lifecycleManager(TransitionBuilder<S, E> transitionBuilder,
-                                                          LifecycleConfiguration<S, E> lifecycleConfiguration) {
-        LifecycleManagerImpl<S, E> lifecycleManager = new LifecycleManagerImpl<>(transitionBuilder, lifecycleConfiguration);
+    public LifecycleManager lifecycleManager(TransitionBuilder transitionBuilder,
+                                                          LifecycleConfiguration lifecycleConfiguration) {
+        LifecycleManagerImpl lifecycleManager = new LifecycleManagerImpl(transitionBuilder, lifecycleConfiguration);
         lifecycleManager.init();
 
         return lifecycleManager;
@@ -24,7 +24,7 @@ public class StateMachineAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public TransitionBuilder<?, ?> transitionBuilder() {
-        return new TransitionBuilderImpl<>();
+    public TransitionBuilder transitionBuilder() {
+        return new TransitionBuilderImpl();
     }
 }

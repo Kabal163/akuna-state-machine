@@ -3,8 +3,6 @@ package com.github.kabal163.statemachine;
 import com.github.kabal163.statemachine.api.Action;
 import com.github.kabal163.statemachine.api.Condition;
 import com.github.kabal163.statemachine.api.StateContext;
-import com.github.kabal163.statemachine.testimpl.Event;
-import com.github.kabal163.statemachine.testimpl.State;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -21,18 +19,17 @@ import static org.mockito.ArgumentMatchers.any;
 
 class TransitionTest {
 
-    StateContext<State, Event> context;
+    StateContext context;
 
-    Action<State, Event> firstAction;
-    Action<State, Event> secondAction;
-    Action<State, Event> failedAction;
+    Action firstAction;
+    Action secondAction;
+    Action failedAction;
 
-    Condition<State, Event> successCondition;
-    Condition<State, Event> failedCondition;
+    Condition successCondition;
+    Condition failedCondition;
 
-    Transition<State, Event> transition;
+    Transition transition;
 
-    @SuppressWarnings("unchecked")
     TransitionTest() {
         context = Mockito.mock(StateContext.class);
         firstAction = Mockito.mock(Action.class);
@@ -51,7 +48,7 @@ class TransitionTest {
 
     @BeforeEach
     void setUp() {
-        transition = new Transition<>();
+        transition = new Transition();
     }
 
     @Test
@@ -108,18 +105,17 @@ class TransitionTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void actionsOrderMustBeTheSameAsOnConfiguration() {
-        Action<State, Event> thirdAction = Mockito.mock(Action.class);
-        Action<State, Event> fourthAction = Mockito.mock(Action.class);
+        Action thirdAction = Mockito.mock(Action.class);
+        Action fourthAction = Mockito.mock(Action.class);
 
         transition.addAction(firstAction);
         transition.addAction(secondAction);
         transition.addAction(thirdAction);
         transition.addAction(fourthAction);
 
-        List<Action<State, Event>> expectedActions = List.of(firstAction, secondAction, thirdAction, fourthAction);
-        List<Action<State, Event>> actualActions = new ArrayList<>(transition.getActions());
+        List<Action> expectedActions = List.of(firstAction, secondAction, thirdAction, fourthAction);
+        List<Action> actualActions = new ArrayList<>(transition.getActions());
 
         boolean result = IntStream.range(0, 4)
                 .allMatch(i -> Objects.equals(expectedActions.get(i), actualActions.get(i)));

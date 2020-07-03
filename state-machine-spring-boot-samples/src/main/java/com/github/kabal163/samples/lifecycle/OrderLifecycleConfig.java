@@ -21,43 +21,43 @@ import static com.github.kabal163.samples.entity.State.PAID;
 
 @Configuration
 @RequiredArgsConstructor
-public class OrderLifecycleConfig implements LifecycleConfiguration<State, Event> {
+public class OrderLifecycleConfig implements LifecycleConfiguration {
 
-    private final Action<State, Event> generateIDAction;
-    private final Action<State, Event> setCreationTimestampAction;
-    private final Action<State, Event> setCanceledTimestampAction;
-    private final Action<State, Event> setPaidTimestampAction;
-    private final Action<State, Event> setDeliveredTimestampAction;
+    private final Action generateIDAction;
+    private final Action setCreationTimestampAction;
+    private final Action setCanceledTimestampAction;
+    private final Action setPaidTimestampAction;
+    private final Action setDeliveredTimestampAction;
 
-    private final Condition<State, Event> currencyCondition;
+    private final Condition currencyCondition;
 
     @Override
-    public void configureTransitions(TransitionConfigurer<State, Event> configurer) {
+    public void configureTransitions(TransitionConfigurer configurer) {
         configurer
                 .with()
-                .sourceState(INIT)
-                .targetState(NEW)
-                .event(CREATE)
+                .sourceState(INIT.name())
+                .targetState(NEW.name())
+                .event(CREATE.name())
                 .action(generateIDAction)
                 .action(setCreationTimestampAction)
 
                 .with()
-                .sourceState(NEW)
-                .targetState(PAID)
-                .event(PAY)
+                .sourceState(NEW.name())
+                .targetState(PAID.name())
+                .event(PAY.name())
                 .condition(currencyCondition)
                 .action(setPaidTimestampAction)
 
                 .with()
-                .sourceState(NEW)
-                .targetState(CANCELED)
-                .event(CANCEL)
+                .sourceState(NEW.name())
+                .targetState(CANCELED.name())
+                .event(CANCEL.name())
                 .action(setCanceledTimestampAction)
 
                 .with()
-                .sourceState(PAID)
-                .targetState(DELIVERED)
-                .event(DELIVER)
+                .sourceState(PAID.name())
+                .targetState(DELIVERED.name())
+                .event(DELIVER.name())
                 .action(setDeliveredTimestampAction);
     }
 }

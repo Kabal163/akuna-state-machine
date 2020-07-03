@@ -10,10 +10,10 @@ import com.github.kabal163.statemachine.api.StateContext;
 import java.time.LocalDateTime;
 
 @Component
-public class SetDeliveredTimestampAction implements Action<State, Event> {
+public class SetDeliveredTimestampAction implements Action {
 
     @Override
-    public void execute(StateContext<State, Event> context) {
+    public void execute(StateContext context) {
         Order order = context.getStatefulObject();
 
         order.setDeliveredTimestamp(LocalDateTime.now());

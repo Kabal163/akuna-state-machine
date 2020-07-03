@@ -7,15 +7,12 @@ import com.github.kabal163.statemachine.api.Condition;
  * Convenient component which helps to configure the lifecycle effortless.
  * The important thing is the {@code with()} method must be called each time
  * before you started to describe a transition.
- * E.x. {@code configurer.with().sourceState(State.NEW).targetState(State.APPROVED)...}
+ * E.x. {@code configurer.with().sourceState("NEW").targetState("APPROVED")...}
  * For more details see: https://github.com/Kabal163/akuna-state-machine/tree/master/state-machine-spring-boot-samples
  * Any configured transition must contain at least {@code sourceState}, {@code targetState} and {@code event}
  * The other attributes are optional
- *
- * @param <S> a state of a stateful object
- * @param <E> an event which triggers a transition
  */
-public interface TransitionConfigurer<S, E> {
+public interface TransitionConfigurer {
 
     /**
      * Used to define the new one described transition.
@@ -23,45 +20,45 @@ public interface TransitionConfigurer<S, E> {
      *
      * @return the configurer instance
      */
-    TransitionConfigurer<S, E> with();
+    TransitionConfigurer with();
 
     /**
      * Defines a state which must correspond to the stateful object's state
      * at the moment of start a transition. This is the mandatory attribute
      * which must be specified for each transition. The {@param state} state
-     * must not be {@code null} otherwise {@link IllegalStateException} will be
+     * must be neither {@code null} nor empty string otherwise {@link IllegalStateException} will be
      * thrown while building a transition.
      *
      * @param state state which must correspond to the stateful object's state
      *              at the moment of start a transition
      * @return the configurer instance
      */
-    TransitionConfigurer<S, E> sourceState(S state);
+    TransitionConfigurer sourceState(String state);
 
     /**
      * Defines a desired state which should be on the stateful object
      * after transition finish. This is the mandatory attribute
      * which must be specified for each transition. The {@param state} state
-     * must not be {@code null} otherwise {@link IllegalStateException} will be
+     * must be neither {@code null} nor empty string otherwise {@link IllegalStateException} will be
      * thrown while building a transition.
      *
      * @param state the desired state which should be on the stateful object
      *              after transition finish
      * @return the configurer instance
      */
-    TransitionConfigurer<S, E> targetState(S state);
+    TransitionConfigurer targetState(String state);
 
     /**
      * Defines a trigger which along with the source state defines the transition
      * which must be executed. This is the mandatory attribute which must be
      * specified for each transition. The {@param event} state
-     * must not be {@code null} otherwise {@link IllegalStateException} will be
+     * must be neither {@code null} nor empty string otherwise {@link IllegalStateException} will be
      * thrown while building a transition.
      *
      * @param event a trigger which defines a cause of transition execution
      * @return the configurer instance
      */
-    TransitionConfigurer<S, E> event(E event);
+    TransitionConfigurer event(String event);
 
     /**
      * Defines a guard which prevents transition execution. Each transition
@@ -73,7 +70,7 @@ public interface TransitionConfigurer<S, E> {
      * @param condition a guard which prevents transition execution
      * @return the configurer instance
      */
-    TransitionConfigurer<S, E> condition(Condition<S, E> condition);
+    TransitionConfigurer condition(Condition condition);
 
     /**
      * Defines a piece of work which must be performed in order to transit
@@ -85,5 +82,5 @@ public interface TransitionConfigurer<S, E> {
      *               the stateful object to the target state
      * @return the configurer instance
      */
-    TransitionConfigurer<S, E> action(Action<S, E> action);
+    TransitionConfigurer action(Action action);
 }

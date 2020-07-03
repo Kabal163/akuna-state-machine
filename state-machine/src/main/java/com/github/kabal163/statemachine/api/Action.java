@@ -8,11 +8,8 @@ package com.github.kabal163.statemachine.api;
  * Implement this interface and put there any logic which is needed
  * during a transition. Use it in your {@link LifecycleConfiguration}
  * lifecycle configuration.
- *
- * @param <S> a state of a stateful object
- * @param <E> an event which triggers a transition
  */
-public interface Action<S, E> {
+public interface Action {
 
     /**
      * Performs a unit of work to execute transition
@@ -21,5 +18,5 @@ public interface Action<S, E> {
      *
      * @param context contains information about the current transition
      */
-    void execute(StateContext<S, E> context);
+    void execute(StateContext context);
 }

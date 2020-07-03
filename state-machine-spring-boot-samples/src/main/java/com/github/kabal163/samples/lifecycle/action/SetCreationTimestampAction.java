@@ -10,10 +10,10 @@ import com.github.kabal163.statemachine.api.StateContext;
 import java.time.LocalDateTime;
 
 @Component
-public class SetCreationTimestampAction implements Action<State, Event> {
+public class SetCreationTimestampAction implements Action {
 
     @Override
-    public void execute(StateContext<State, Event> context) {
+    public void execute(StateContext context) {
         Order order = context.getStatefulObject();
 
         order.setCreatedTimestamp(LocalDateTime.now());

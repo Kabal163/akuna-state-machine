@@ -22,12 +22,12 @@ import static com.github.kabal163.samples.entity.Event.PAY;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
-    private final LifecycleManager<State, Event> lifecycleManager;
+    private final LifecycleManager lifecycleManager;
     private final OrderRepository repository;
 
     @Override
     public Order create() {
-        TransitionResult<State, Event> result = lifecycleManager.execute(new Order(), CREATE);
+        TransitionResult result = lifecycleManager.execute(new Order(), CREATE.name());
         Order order = result
                 .getStateContext()
                 .getStatefulObject();
@@ -42,7 +42,7 @@ public class OrderServiceImpl implements OrderService {
         contextVariables.put(Constants.CURRENCY, currency);
         contextVariables.put(Constants.SUM, amount);
 
-        lifecycleManager.execute(order, PAY, contextVariables);
+        lifecycleManager.execute(order, PAY.name(), contextVariables);
 
         return repository.save(order);
     }
@@ -50,7 +50,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order cancel(String id) {
         Order order = repository.find(id).orElseThrow();
-        lifecycleManager.execute(order, CANCEL);
+        lifecycleManager.execute(order, CANCEL.name());
 
         return repository.save(order);
     }
@@ -58,7 +58,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order deliver(String id) {
         Order order = repository.find(id).orElseThrow();
-        lifecycleManager.execute(order, DELIVER);
+        lifecycleManager.execute(order, DELIVER.name());
 
         return repository.save(order);
     }
