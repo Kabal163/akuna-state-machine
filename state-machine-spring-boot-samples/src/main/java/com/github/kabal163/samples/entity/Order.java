@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import static com.github.kabal163.samples.entity.State.INIT;
 
 @Data
-public class Order implements StatefulObject<State> {
+public class Order implements StatefulObject {
 
     private String id;
 
@@ -21,4 +21,13 @@ public class Order implements StatefulObject<State> {
     private LocalDateTime deliveredTimestamp;
 
     private LocalDateTime canceledTimestamp;
+
+    @Override
+    public void setState(String state) {
+        this.state = State.valueOf(state);
+    }
+
+    public String getState() {
+        return state.name();
+    }
 }

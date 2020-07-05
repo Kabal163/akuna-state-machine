@@ -13,16 +13,17 @@ import java.util.List;
 import java.util.Set;
 
 @Data
-class Transition<S, E> {
+class Transition {
 
-    private S sourceState;
-    private S targetState;
-    private E event;
+    //todo make all field final
+    private String sourceState;
+    private String targetState;
+    private String event;
 
-    private Set<Condition<S, E>> conditions = new HashSet<>();
-    private List<Action<S, E>> actions = new LinkedList<>();
+    private Set<Condition> conditions = new HashSet<>();
+    private List<Action> actions = new LinkedList<>();
 
-    public boolean transit(StateContext<S, E> context) {
+    public boolean transit(StateContext context) {
         if (!conditions.stream().allMatch(condition -> condition.evaluate(context))) {
             return false;
         }
@@ -31,19 +32,19 @@ class Transition<S, E> {
         return true;
     }
 
-    public void addAction(Action<S, E> action) {
+    public void addAction(Action action) {
         actions.add(action);
     }
 
-    public void addCondition(Condition<S, E> condition) {
+    public void addCondition(Condition condition) {
         conditions.add(condition);
     }
 
-    public Collection<Condition<S, E>> getConditions() {
+    public Collection<Condition> getConditions() {
         return new HashSet<>(conditions);
     }
 
-    public Collection<Action<S, E>> getActions() {
+    public Collection<Action> getActions() {
         return new ArrayList<>(actions);
     }
 }

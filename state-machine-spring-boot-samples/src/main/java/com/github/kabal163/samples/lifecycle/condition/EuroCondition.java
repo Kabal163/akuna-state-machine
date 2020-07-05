@@ -13,12 +13,12 @@ import static com.github.kabal163.samples.lifecycle.Constants.CURRENCY;
 @Component
 @Profile("eur")
 @Qualifier("currencyCondition")
-public class EuroCondition implements Condition<State, Event> {
+public class EuroCondition implements Condition {
 
     private static final String EURO_CURRENCY = "EUR";
 
     @Override
-    public boolean evaluate(StateContext<State, Event> context) {
+    public boolean evaluate(StateContext context) {
         String currency = context.getVariable(CURRENCY, String.class);
 
         return EURO_CURRENCY.equals(currency);

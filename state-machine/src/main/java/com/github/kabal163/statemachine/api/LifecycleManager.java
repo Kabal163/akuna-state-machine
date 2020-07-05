@@ -11,11 +11,8 @@ import java.util.Map;
  * uses internally {@link LifecycleConfiguration} lifecycle configuration
  * which must be configured by a user. If any exception occurs during a transition
  * will be placed into the {@link TransitionResult} transition result.
- *
- * @param <S> a state of a stateful object
- * @param <E> an event which triggers a transition
  */
-public interface LifecycleManager<S, E> {
+public interface LifecycleManager {
 
     /**
      * Executes a transition of the stateful object according the event.
@@ -29,7 +26,7 @@ public interface LifecycleManager<S, E> {
      * stateful object's source state and event
      * @throws AmbiguousTransitionException if there are more then one matching transitions
      */
-    TransitionResult<S, E> execute(StatefulObject<S> statefulObject, E event);
+    TransitionResult execute(StatefulObject statefulObject, String event);
 
     /**
      * Executes a transition of the stateful object according the event.
@@ -46,5 +43,5 @@ public interface LifecycleManager<S, E> {
      * stateful object's source state and event
      * @throws AmbiguousTransitionException if there are more then one matching transitions
      */
-    TransitionResult<S, E> execute(StatefulObject<S> statefulObject, E event, Map<String, Object> variables);
+    TransitionResult execute(StatefulObject statefulObject, String event, Map<String, Object> variables);
 }

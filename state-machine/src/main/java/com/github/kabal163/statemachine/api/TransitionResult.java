@@ -7,13 +7,10 @@ import lombok.RequiredArgsConstructor;
  * Contains the main information about executed transition.
  * If there were no exceptions then {@code exception} field
  * will be {@code null}.
- *
- * @param <S> a state of a stateful object
- * @param <E> an event which triggers a transition
  */
 @Getter
 @RequiredArgsConstructor
-public class TransitionResult<S, E> {
+public class TransitionResult {
 
     /**
      * Whether the transition was successful or not
@@ -23,13 +20,13 @@ public class TransitionResult<S, E> {
     /**
      * The shared context of the transition
      */
-    private final StateContext<S, E> stateContext;
+    private final StateContext stateContext;
 
     /**
      * The state which stateful object has at the moment
      * of start the transition
      */
-    private final S sourceState;
+    private final String sourceState;
 
     /**
      * The state which stateful object should has at the moment
@@ -37,7 +34,7 @@ public class TransitionResult<S, E> {
      * doesn't match the actual state of the stateful object after
      * transition execution due to exceptions.
      */
-    private final S targetState;
+    private final String targetState;
 
     /**
      * Any exception which happened during actions or conditions execution

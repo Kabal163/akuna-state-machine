@@ -10,10 +10,10 @@ import com.github.kabal163.statemachine.api.StateContext;
 import java.util.UUID;
 
 @Component
-public class GenerateIDAction implements Action<State, Event> {
+public class GenerateIDAction implements Action {
 
     @Override
-    public void execute(StateContext<State, Event> context) {
+    public void execute(StateContext context) {
         Order order = context.getStatefulObject();
 
         order.setId(UUID.randomUUID().toString());

@@ -30,7 +30,7 @@ class OrderServiceImplTest {
         assertNotNull(order);
         assertNotNull(order.getId());
         assertNotNull(order.getCreatedTimestamp());
-        assertEquals(NEW, order.getState());
+        assertEquals(NEW.name(), order.getState());
     }
 
     @Test
@@ -38,7 +38,7 @@ class OrderServiceImplTest {
         Order order = orderService.create();
         orderService.pay(order.getId(), "RUR", 200);
 
-        assertEquals(PAID, order.getState());
+        assertEquals(PAID.name(), order.getState());
         assertNotNull(order.getPaidTimestamp());
     }
 
@@ -47,7 +47,7 @@ class OrderServiceImplTest {
         Order order = orderService.create();
         orderService.pay(order.getId(), "EUR", 200);
 
-        assertEquals(NEW, order.getState());
+        assertEquals(NEW.name(), order.getState());
         assertNull(order.getPaidTimestamp());
     }
 
@@ -56,7 +56,7 @@ class OrderServiceImplTest {
         Order order = orderService.create();
         orderService.cancel(order.getId());
 
-        assertEquals(CANCELED, order.getState());
+        assertEquals(CANCELED.name(), order.getState());
         assertNotNull(order.getCreatedTimestamp());
     }
 
@@ -66,7 +66,7 @@ class OrderServiceImplTest {
         orderService.pay(order.getId(), "RUR", 200);
         orderService.deliver(order.getId());
 
-        assertEquals(DELIVERED, order.getState());
+        assertEquals(DELIVERED.name(), order.getState());
         assertNotNull(order.getDeliveredTimestamp());
     }
 
