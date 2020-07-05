@@ -5,7 +5,7 @@
     <groupId>com.github.kabal163</groupId>
     <artifactId>state-machine-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.2</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
