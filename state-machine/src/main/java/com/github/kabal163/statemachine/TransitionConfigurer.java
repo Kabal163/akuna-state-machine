@@ -25,7 +25,7 @@ public interface TransitionConfigurer {
     /**
      * Defines a state which must correspond to the stateful object's state
      * at the moment of start a transition. This is the mandatory attribute
-     * which must be specified for each transition. The {@param state} state
+     * which must be specified for each transition. The {@code state}
      * must be neither {@code null} nor empty string otherwise {@link IllegalStateException} will be
      * thrown while building a transition.
      *
@@ -38,7 +38,7 @@ public interface TransitionConfigurer {
     /**
      * Defines a desired state which should be on the stateful object
      * after transition finish. This is the mandatory attribute
-     * which must be specified for each transition. The {@param state} state
+     * which must be specified for each transition. The {@code state}
      * must be neither {@code null} nor empty string otherwise {@link IllegalStateException} will be
      * thrown while building a transition.
      *
@@ -51,7 +51,7 @@ public interface TransitionConfigurer {
     /**
      * Defines a trigger which along with the source state defines the transition
      * which must be executed. This is the mandatory attribute which must be
-     * specified for each transition. The {@param event} state
+     * specified for each transition. The {@code event}
      * must be neither {@code null} nor empty string otherwise {@link IllegalStateException} will be
      * thrown while building a transition.
      *
