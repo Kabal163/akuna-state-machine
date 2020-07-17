@@ -1,19 +1,25 @@
 package com.github.kabal163.statemachine.api;
 
-import lombok.RequiredArgsConstructor;
-
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Contains information about the transition. It helps to share
  * information between actions and conditions.
  */
-@RequiredArgsConstructor
 public class StateContext {
 
     private final StatefulObject statefulObject;
     private final String event;
     private final Map<String, Object> variables;
+
+    public StateContext(StatefulObject statefulObject,
+                        String event,
+                        Map<String, Object> variables) {
+        this.statefulObject = statefulObject;
+        this.event = event;
+        this.variables = new HashMap<>(variables);
+    }
 
     public void putVariable(String key, Object value) {
         variables.put(key, value);
