@@ -19,11 +19,11 @@ public interface LifecycleManager {
      *
      * @param statefulObject an object which state should be changed with
      *                       corresponding actions execution
-     * @param event a signal which helps to define the target state
+     * @param event          a signal which helps to define the target state
      * @return {@link TransitionResult} transition result containing information
      * about executed transition
-     * @throws TransitionNotFoundException if no transition was found for corresponding
-     * stateful object's source state and event
+     * @throws TransitionNotFoundException  if no transition was found for corresponding
+     *                                      stateful object's source state and event
      * @throws AmbiguousTransitionException if there are more then one matching transitions
      */
     TransitionResult execute(StatefulObject statefulObject, String event);
@@ -35,12 +35,12 @@ public interface LifecycleManager {
      *
      * @param statefulObject an object which state should be changed with
      *                       corresponding actions execution
-     * @param event a signal which helps to define the target state
-     * @param variables any external data which is necessary during transition performance
+     * @param event          a signal which helps to define the target state
+     * @param variables      any external data which is necessary during transition performance
      * @return {@link TransitionResult} transition result containing information
      * about executed transition
-     * @throws TransitionNotFoundException if no transition was found for the corresponding
-     * stateful object's source state and event
+     * @throws TransitionNotFoundException  if no transition was found for the corresponding
+     *                                      stateful object's source state and event
      * @throws AmbiguousTransitionException if there are more then one matching transitions
      */
     TransitionResult execute(StatefulObject statefulObject, String event, Map<String, Object> variables);

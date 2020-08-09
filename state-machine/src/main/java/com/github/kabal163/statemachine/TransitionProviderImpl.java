@@ -4,6 +4,7 @@ import com.github.kabal163.statemachine.api.LifecycleConfiguration;
 import com.github.kabal163.statemachine.api.StatefulObject;
 import com.github.kabal163.statemachine.api.TransitionsInitializer;
 import com.github.kabal163.statemachine.exception.AmbiguousTransitionException;
+import com.github.kabal163.statemachine.exception.LifecycleNotFoundException;
 import com.github.kabal163.statemachine.exception.TransitionNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,7 @@ public class TransitionProviderImpl implements TransitionProvider {
     private void assertLifecycleIsSupported(StatefulObject statefulObject) {
         if (!transitions.containsKey(statefulObject.getLifecycleName())) {
             log.error("There is no such lifecycle: {}", statefulObject.getLifecycleName());
-            throw new IllegalStateException("There is no such lifecycle: " + statefulObject.getLifecycleName());
+            throw new LifecycleNotFoundException("There is no such lifecycle: " + statefulObject.getLifecycleName());
         }
     }
 

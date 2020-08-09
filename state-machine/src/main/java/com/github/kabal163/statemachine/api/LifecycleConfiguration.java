@@ -29,5 +29,5 @@ public interface LifecycleConfiguration {
      */
     default String getLifecycleName() {
         return null;
-    };
+    }
 }
