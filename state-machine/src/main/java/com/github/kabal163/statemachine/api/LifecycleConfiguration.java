@@ -17,4 +17,17 @@ public interface LifecycleConfiguration {
      *                   to configure the lifecycle
      */
     void configureTransitions(TransitionConfigurer configurer);
+
+    /**
+     * Should return the name of the configured lifecycle.
+     * Each lifecycle must have a unique name.
+     * If method returns <code>null</code> or empty string
+     * then lifecycle's name will be the same as the it's
+     * configuration class name.
+     *
+     * @return lifecycle's name
+     */
+    default String getLifecycleName() {
+        return null;
+    };
 }

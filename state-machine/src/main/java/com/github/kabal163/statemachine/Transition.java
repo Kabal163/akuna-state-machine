@@ -13,9 +13,8 @@ import java.util.List;
 import java.util.Set;
 
 @Data
-class Transition {
+public class Transition {
 
-    //todo make all field final
     private String sourceState;
     private String targetState;
     private String event;

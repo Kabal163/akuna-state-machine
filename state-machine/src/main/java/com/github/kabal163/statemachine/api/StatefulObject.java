@@ -29,4 +29,13 @@ public interface StatefulObject {
      * @param state new state to the stateful object
      */
     void setState(String state);
+
+    /**
+     * Must return the name of the appropriate lifecycle which transitions
+     * should be applied to the current stateful object.
+     * The name should be as specified in the {@link LifecycleConfiguration#getLifecycleName()}
+     *
+     * @return lifecycle's name
+     */
+    String getLifecycleName();
 }

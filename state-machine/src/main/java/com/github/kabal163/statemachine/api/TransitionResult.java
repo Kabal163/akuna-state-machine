@@ -15,7 +15,7 @@ public class TransitionResult {
     /**
      * Whether the transition was successful or not
      */
-    private final boolean success;
+    private final boolean succeeded;
 
     /**
      * The shared context of the transition
