@@ -30,7 +30,7 @@ returns false then transition will not be performed.
     <dependency>
         <groupId>com.github.kabal163</groupId>
         <artifactId>state-machine</artifactId>
-        <version>0.2.1</version>
+        <version>0.3.0</version>
     </dependency>
 
 You need to implement <code>LifecycleConfiguration</code> and configure your lifecycle.
@@ -47,9 +47,10 @@ It requires <code>TransitionBuilder</code>. You can use the default implementati
 Example:
 
     LifecycleConfiguration config = new MyLifecycleConfiguration();
-    TransitionBuilder transitionBuilder = new TransitionBuilderImpl();
-    LifecycleManager lifecycleManager = new LifecycleManagerImpl(transitionBuilder, config);
-    lifecycleManager.init();
+    TransitionProvider transitionProvider = TransitionProviderImpl.builder()
+                        .configs(singletonList(config))
+                        .build();
+    LifecycleManager lifecycleManager = new LifecycleManagerImpl(transitionProvider);
 
 
 In order to perform a transition you need to use the <code>execute</code> method of 
@@ -71,7 +72,7 @@ This method returns <code>TransitionResult</code> which contains information abo
     <dependency>
         <groupId>com.github.kabal163</groupId>
         <artifactId>state-machine-spring-boot-starter</artifactId>
-        <version>0.2.1</version>
+        <version>0.3.0</version>
     </dependency>
 
 All you need to do is to implement <code>LifecycleConfiguration</code> and define it as a bean.
