@@ -3,6 +3,7 @@ package com.github.kabal163.statemachine;
 import com.github.kabal163.statemachine.api.LifecycleConfiguration;
 import com.github.kabal163.statemachine.api.StatefulObject;
 import com.github.kabal163.statemachine.exception.AmbiguousTransitionException;
+import com.github.kabal163.statemachine.exception.LifecycleNotFoundException;
 import com.github.kabal163.statemachine.exception.TransitionNotFoundException;
 
 /**
@@ -24,6 +25,10 @@ public interface TransitionProvider {
      * @return transition which must be performed over the stateful object
      * @throws AmbiguousTransitionException if more then one matching transition is found
      * @throws TransitionNotFoundException  if no matching transition is found
+     * @throws IllegalArgumentException     if stateful object is null or event is null or empty
+     * @throws LifecycleNotFoundException   if there is no transitions with lifecycle name which specified
+     *                                      in the {@link StatefulObject#getLifecycleName()} stateful object
+     *                                      or {@link StatefulObject#getLifecycleName()} returns null or empty string
      */
     Transition getTransition(StatefulObject statefulObject, String event);
 }

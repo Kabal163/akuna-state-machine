@@ -60,4 +60,9 @@ public class OrderLifecycleConfig implements LifecycleConfiguration {
                 .event(DELIVER.name())
                 .action(setDeliveredTimestampAction);
     }
+
+    @Override
+    public String getLifecycleName() {
+        return "orderLifecycle";
+    }
 }

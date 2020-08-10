@@ -10,6 +10,11 @@ import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+/**
+ * Builds transitions from java configurations.
+ * Transitions are grouped by lifecycle name declared
+ * in the configurations.
+ */
 public class JavaConfigTransitionsInitializer implements TransitionsInitializer {
 
     @Override

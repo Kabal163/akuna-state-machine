@@ -9,11 +9,13 @@ import com.github.kabal163.statemachine.exception.TransitionNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class TransitionProviderImpl implements TransitionProvider {
 
@@ -30,9 +32,10 @@ public class TransitionProviderImpl implements TransitionProvider {
 
     @Override
     public Transition getTransition(StatefulObject statefulObject, String event) {
-        String sourceState = statefulObject.getState();
+        assertArgumentsAreNotNullOrBlank(statefulObject, event);
         assertLifecycleIsSupported(statefulObject);
 
+        String sourceState = statefulObject.getState();
         Set<Transition> matchTransitions = transitions.get(statefulObject.getLifecycleName()).stream()
                 .filter(t -> Objects.equals(t.getSourceState(), sourceState))
                 .filter(t -> Objects.equals(t.getEvent(), event))
@@ -57,7 +60,17 @@ public class TransitionProviderImpl implements TransitionProvider {
                 });
     }
 
+    private void assertArgumentsAreNotNullOrBlank(StatefulObject statefulObject, String event) {
+        if (statefulObject == null || isBlank(event)) {
+            throw new IllegalArgumentException("Stateful object and event must not be null or empty string!");
+        }
+    }
+
     private void assertLifecycleIsSupported(StatefulObject statefulObject) {
+        if (isBlank(statefulObject.getLifecycleName())) {
+            log.error("Null or empty lifecycle names are not supported!");
+            throw new LifecycleNotFoundException("Null or empty lifecycle names are not supported!");
+        }
         if (!transitions.containsKey(statefulObject.getLifecycleName())) {
             log.error("There is no such lifecycle: {}", statefulObject.getLifecycleName());
             throw new LifecycleNotFoundException("There is no such lifecycle: " + statefulObject.getLifecycleName());
@@ -66,10 +79,10 @@ public class TransitionProviderImpl implements TransitionProvider {
 
     public static final class TransitionProviderBuilder {
 
-        private List<LifecycleConfiguration> javaConfigs;
+        private Collection<LifecycleConfiguration> javaConfigs;
         private TransitionsInitializer transitionsInitializer;
 
-        public TransitionProviderBuilder configs(List<LifecycleConfiguration> configurations) {
+        public TransitionProviderBuilder configs(Collection<LifecycleConfiguration> configurations) {
             this.javaConfigs = configurations;
             return this;
         }

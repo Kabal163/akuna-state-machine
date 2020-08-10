@@ -27,6 +27,11 @@ public class Order implements StatefulObject {
         this.state = State.valueOf(state);
     }
 
+    @Override
+    public String getLifecycleName() {
+        return "orderLifecycle";
+    }
+
     public String getState() {
         return state.name();
     }
