@@ -5,7 +5,7 @@
     <groupId>com.github.kabal163</groupId>
     <artifactId>state-machine-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
@@ -43,35 +43,67 @@
     </properties>
 
     <modules>
-        <module>state-machine-spring-boot-starter</module>
-        <module>state-machine-spring-boot-autoconfigure</module>
-        <module>state-machine-spring-boot-samples</module>
         <module>state-machine</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>2.3.0.RELEASE</version>
-                <type>pom</type>
-                <scope>import</scope>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>1.2.3</version>
             </dependency>
             <dependency>
-                <groupId>com.github.kabal163</groupId>
-                <artifactId>state-machine-spring-boot-autoconfigure</artifactId>
-                <version>${project.version}</version>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.30</version>
             </dependency>
             <dependency>
-                <groupId>com.github.kabal163</groupId>
-                <artifactId>state-machine-spring-boot-starter</artifactId>
-                <version>${project.version}</version>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.9</version>
             </dependency>
             <dependency>
-                <groupId>com.github.kabal163</groupId>
-                <artifactId>state-machine</artifactId>
-                <version>${project.version}</version>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>3.0.2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>3.3.3</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>3.3.3</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>5.6.3</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <scope>test</scope>
+                <version>5.6.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <scope>test</scope>
+                <version>5.6.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>3.18.1</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

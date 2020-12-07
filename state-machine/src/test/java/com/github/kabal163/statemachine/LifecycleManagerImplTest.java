@@ -1,522 +1,495 @@
 package com.github.kabal163.statemachine;
 
-import com.github.kabal163.statemachine.api.StateContext;
-import com.github.kabal163.statemachine.api.StatefulObject;
-import com.github.kabal163.statemachine.api.TransitionResult;
-import com.github.kabal163.statemachine.exception.AmbiguousTransitionException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import com.github.kabal163.statemachine.api.StateContext;
+import com.github.kabal163.statemachine.api.StatefulObject;
+import com.github.kabal163.statemachine.api.TransitionResult;
+import com.github.kabal163.statemachine.exception.AmbiguousTransitionException;
 
 import java.util.Map;
 
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.filter;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static com.github.kabal163.statemachine.TestEvent.EVENT;
+import static com.github.kabal163.statemachine.TestState.STATE;
 
 class LifecycleManagerImplTest {
 
     @Mock
-    TransitionProvider transitionProvider;
+    TransitionProvider<TestState, TestEvent> transitionProviderMock;
 
-    LifecycleManagerImpl lifecycleManager;
+    @Mock
+    Transition<TestState, TestEvent> transitionMock;
+
+    /**
+     * Captures StateContext which is passed to the {@link Transition#transit(StateContext)}
+     */
+    ArgumentCaptor<StateContext<TestState, TestEvent>> transitionStateContextCaptor;
+
+    LifecycleManagerImpl<TestState, TestEvent> lifecycleManager;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.initMocks(this);
-        lifecycleManager = new LifecycleManagerImpl(transitionProvider);
+        transitionStateContextCaptor = ArgumentCaptor.forClass(StateContext.class);
+        when(transitionMock.transit(transitionStateContextCaptor.capture())).thenReturn(true);
+
+        lifecycleManager = new LifecycleManagerImpl<>(transitionProviderMock);
     }
 
     @Test
-    void whenExecuteThenTransitionProvider_getTransitionIsCalled() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-
-        lifecycleManager.execute(statefulObject, event);
-
-        verify(transitionProvider, times(1)).getTransition(statefulObject, event);
+    @DisplayName("Given StatefulObject is null " +
+            "When call LifecycleManagerImpl.execute(StatefulObject, E) " +
+            "Then throws NullPointerException")
+    void givenStatefulObjectIsNull_whenCallExecute_thenThrowsNullPointerException_1() {
+        assertThatThrownBy(() -> lifecycleManager.execute(null, EVENT))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("must not be null");
     }
 
     @Test
-    void whenExecuteThenTransition_transitIsCalled() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-
-        lifecycleManager.execute(statefulObject, event);
-
-        verify(transition, times(1)).transit(any(StateContext.class));
+    @DisplayName("Given StatefulObject is null " +
+            "When call LifecycleManagerImpl.execute(StatefulObject, E, Map<String, Object> ) " +
+            "Then throws NullPointerException")
+    void givenStatefulObjectIsNull_whenCallExecute_thenThrowsNullPointerException_2() {
+        Map<String, Object> emptyMap = emptyMap();
+        assertThatThrownBy(() -> lifecycleManager.execute(null, EVENT, emptyMap))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("must not be null");
     }
 
     @Test
-    void whenExecuteThenStateContextMustBePassedToTransition_transit() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-        ArgumentCaptor<StateContext> captor = ArgumentCaptor.forClass(StateContext.class);
-        when(transition.transit(captor.capture())).thenReturn(true);
-
-        lifecycleManager.execute(statefulObject, event);
-
-        assertNotNull(captor.getValue());
+    @DisplayName("Given event is null " +
+            "When call LifecycleManagerImpl.execute(StatefulObject, E) " +
+            "Then throws NullPointerException")
+    void givenEventIsNull_whenCallExecute_thenThrowsNullPointerException_1() {
+        assertThatThrownBy(() -> lifecycleManager.execute(mock(StatefulObject.class), null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("must not be null");
     }
 
     @Test
-    void whenExecuteThenStateContextMustContainStatefulObject() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        ArgumentCaptor<StateContext> captor = ArgumentCaptor.forClass(StateContext.class);
-        when(transition.transit(captor.capture())).thenReturn(true);
-
-        lifecycleManager.execute(expectedObject, event);
-
-        StatefulObject actualObject = captor.getValue().getStatefulObject();
-        assertEquals(expectedObject, actualObject);
+    @DisplayName("Given event is null " +
+            "When call LifecycleManagerImpl.execute(StatefulObject, E, Map<String, Object> ) " +
+            "Then throws NullPointerException")
+    void givenEventIsNull_whenCallExecute_thenThrowsNullPointerException_2() {
+        Map<String, Object> emptyMap = emptyMap();
+        assertThatThrownBy(() -> lifecycleManager.execute(mock(StatefulObject.class), null, emptyMap))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("must not be null");
     }
 
     @Test
-    void whenExecuteThenStateContextMustContainEvent() {
-        String expectedEvent = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, expectedEvent)).thenReturn(transition);
-        ArgumentCaptor<StateContext> captor = ArgumentCaptor.forClass(StateContext.class);
-        when(transition.transit(captor.capture())).thenReturn(true);
+    @DisplayName("Given variables map is null " +
+            "When call LifecycleManagerImpl.execute(StatefulObject, E, Map<String, Object> ) " +
+            "Then throws NullPointerException")
+    void givenVariablesMapIsNull_whenCallExecute_thenThrowsNullPointerException() {
+        assertThatThrownBy(() -> lifecycleManager.execute(mock(StatefulObject.class), EVENT, null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("must not be null");
+    }
 
-        lifecycleManager.execute(statefulObject, expectedEvent);
 
-        String actualEvent = captor.getValue().getEvent();
-        assertEquals(expectedEvent, actualEvent);
+    @Test
+    @DisplayName("When call LifecycleManagerImpl.execute " +
+            "Then TransitionProvider.getTransition must be called once in order to get available transition")
+    void whenCallExecute_thenTransitionProvider$getTransitionMethodIsCalledOnce() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+
+        lifecycleManager.execute(statefulObject, EVENT);
+
+        verify(transitionProviderMock, times(1)).getTransition(statefulObject, EVENT);
     }
 
     @Test
-    void givenCustomVariablesWhenExecuteThenContextMustContainCustomVariables() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-        ArgumentCaptor<StateContext> captor = ArgumentCaptor.forClass(StateContext.class);
-        when(transition.transit(captor.capture())).thenReturn(true);
-        Map<String, Object> variables = singletonMap("expectedKey", "expectedValue");
+    @DisplayName("When call LifecycleManagerImpl.execute " +
+            "Then Transition.transit must be called once in order to execute available transition")
+    void whenCallExecute_thenTransition$transitIsCalledOnce() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
 
-        lifecycleManager.execute(statefulObject, event, variables);
+        lifecycleManager.execute(statefulObject, EVENT);
 
-        String actualValue = captor.getValue().getVariable("expectedKey", String.class);
-        assertEquals("expectedValue", actualValue);
+        verify(transitionMock, times(1)).transit(any(StateContext.class));
     }
 
     @Test
-    void givenSuccessTransitionWhenExecuteThenReturnTransitionResult() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(true);
+    @DisplayName("When call LifecycleManagerImpl.execute " +
+            "Then StateContext must be passed to the Transition.transit method")
+    void whenCallExecute_thenStateContextMustBePassedToTransition$transitMethod() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
 
-        TransitionResult actualResult = lifecycleManager.execute(statefulObject, event);
+        lifecycleManager.execute(statefulObject, EVENT);
+        StateContext<TestState, TestEvent> actual = transitionStateContextCaptor.getValue();
 
-        assertNotNull(actualResult);
+        assertThat(actual).isNotNull();
     }
 
     @Test
-    void givenFailedTransitionWhenExecuteThenReturnTransitionResult() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(false);
+    @DisplayName("When call LifecycleManagerImpl.execute " +
+            "Then StateContext must contain StatefulObject")
+    void whenCallExecute_thenStateContextMustContainStatefulObject() {
+        StatefulObject<TestState> expected = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(expected, EVENT)).thenReturn(transitionMock);
 
-        TransitionResult actualResult = lifecycleManager.execute(statefulObject, event);
+        lifecycleManager.execute(expected, EVENT);
+        StatefulObject<TestState> actual = transitionStateContextCaptor.getValue().getStatefulObject();
 
-        assertNotNull(actualResult);
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenTransitionThrowsExceptionWhenExecuteThenReturnTransitionResult() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-        doThrow(RuntimeException.class).when(transition).transit(any(StateContext.class));
+    @DisplayName("When call LifecycleManagerImpl.execute " +
+            "Then StateContext must contain event")
+    void whenCallExecute_thenStateContextMustContainEvent() {
+        final TestEvent expected = EVENT;
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, expected)).thenReturn(transitionMock);
 
-        TransitionResult transitionResult = lifecycleManager.execute(statefulObject, event);
+        lifecycleManager.execute(statefulObject, expected);
+        TestEvent actual = transitionStateContextCaptor.getValue().getEvent();
 
-        assertNotNull(transitionResult);
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenSuccessTransitionWhenExecuteThenTransitionResultMustContainSucceededEqualsTrue() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(true);
+    @DisplayName("Given custom variables" +
+            "When call LifecycleManagerImpl.execute " +
+            "Then StateContext must contain the custom variables")
+    void givenCustomVariables_whenCallExecute_thenStateContextMustContainTheCustomVariables() {
+        final String expected = "someValue";
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        Map<String, Object> variables = singletonMap("any", expected);
 
-        TransitionResult transitionResult = lifecycleManager.execute(statefulObject, event);
+        lifecycleManager.execute(statefulObject, EVENT, variables);
+        String actual = transitionStateContextCaptor.getValue().getVariable("any", String.class);
 
-        assertTrue(transitionResult.isSucceeded());
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenFailedTransitionWhenExecuteThenTransitionResultMustContainSucceededEqualsFalse() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(false);
+    @DisplayName("When call LifecycleManagerImpl.execute " +
+            "Then returns not null")
+    void whenCallExecute_thenReturnsNotNull() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
 
-        TransitionResult transitionResult = lifecycleManager.execute(statefulObject, event);
+        TransitionResult<TestState, TestEvent> actual = lifecycleManager.execute(statefulObject, EVENT);
 
-        assertFalse(transitionResult.isSucceeded());
+        assertThat(actual).isNotNull();
     }
 
     @Test
-    void givenTransitionThrowsExceptionWhenExecuteThenTransitionResultMustSucceededEqualsFalse() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-        doThrow(RuntimeException.class).when(transition).transit(any(StateContext.class));
+    @DisplayName("Given Transition.transit returns false " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then returns not null")
+    void givenTransition$transitReturnsFalse_whenCallExecute_thenReturnsNotNull() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionMock.transit(any(StateContext.class))).thenReturn(false);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
 
-        TransitionResult transitionResult = lifecycleManager.execute(statefulObject, event);
+        TransitionResult<TestState, TestEvent> actual = lifecycleManager.execute(statefulObject, EVENT);
 
-        assertFalse(transitionResult.isSucceeded());
+        assertThat(actual).isNotNull();
     }
 
     @Test
-    void givenSuccessTransitionWhenExecuteThenTransitionResultMustContainSourceState() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(true);
-        when(transition.getSourceState()).thenReturn("NEW");
+    @DisplayName("GivenTransition.transit throws an exception " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then returns not null")
+    void givenTransition$transitThrowsException_whenCallExecute_thenReturnNotNull() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        doThrow(RuntimeException.class).when(transitionMock).transit(any(StateContext.class));
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        TransitionResult<TestState, TestEvent> actual = lifecycleManager.execute(statefulObject, EVENT);
 
-        assertNotNull(transitionResult.getSourceState());
+        assertThat(actual).isNotNull();
     }
 
     @Test
-    void givenFailedTransitionWhenExecuteThenTransitionResultMustContainSourceState() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(false);
-        when(transition.getSourceState()).thenReturn("NEW");
+    @DisplayName("When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.isSucceeded must be true")
+    void whenCallExecute_thenTransitionResult$isSucceededMustBeTrue() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        boolean actual = lifecycleManager.execute(statefulObject, EVENT)
+                .isSucceeded();
 
-        assertNotNull(transitionResult.getSourceState());
+        assertThat(actual).isTrue();
     }
 
     @Test
-    void givenTransitionThrowsExceptionWhenExecuteThenTransitionResultMustContainSourceState() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-        doThrow(RuntimeException.class).when(transition).transit(any(StateContext.class));
-        when(transition.getSourceState()).thenReturn("NEW");
+    @DisplayName("Given Transition.transit returns false " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.isSucceeded must be false")
+    void givenTransition$transitReturnsFalse_whenCallExecute_thenTransitionResult$isSucceededMustBeFalse() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        when(transitionMock.transit(any(StateContext.class))).thenReturn(false);
 
-        TransitionResult transitionResult = lifecycleManager.execute(statefulObject, event);
+        boolean actual = lifecycleManager.execute(statefulObject, EVENT)
+                .isSucceeded();
 
-        assertNotNull(transitionResult.getSourceState());
+        assertThat(actual).isFalse();
     }
 
     @Test
-    void givenSuccessTransitionWhenExecuteThenSourceStateInTransitionResultEqualToSourceStateInTransition() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(true);
-        String expectedSourceState = "NEW";
-        when(transition.getSourceState()).thenReturn(expectedSourceState);
+    @DisplayName("Given Transition.transit throws an exception " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.isSucceeded must be false")
+    void givenTransition$transitThrowsException_whenCallExecute_thenTransitionResult$isSucceededMustBeFalse() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        doThrow(RuntimeException.class).when(transitionMock).transit(any(StateContext.class));
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        boolean actual = lifecycleManager.execute(statefulObject, EVENT)
+                .isSucceeded();
 
-        assertEquals(expectedSourceState, transitionResult.getSourceState());
+        assertThat(actual).isFalse();
     }
 
     @Test
-    void givenFailedTransitionWhenExecuteThenSourceStateInTransitionResultEqualToSourceStateInTransition() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(false);
-        String expectedSourceState = "NEW";
-        when(transition.getSourceState()).thenReturn(expectedSourceState);
+    @DisplayName("When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.getSourceState must have the source state")
+    void whenCallExecute_thenTransitionResult$getSourceStateMustHaveTheSourceState() {
+        final TestState expected = STATE;
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        when(transitionMock.getSourceState()).thenReturn(expected);
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        TestState actual = lifecycleManager.execute(statefulObject, EVENT)
+                .getSourceState();
 
-        assertEquals(expectedSourceState, transitionResult.getSourceState());
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenTransitionThrowsExceptionWhenExecuteThenSourceStateInTransitionResultEqualToSourceStateInTransition() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        doThrow(RuntimeException.class).when(transition).transit(any(StateContext.class));
-        String expectedSourceState = "NEW";
-        when(transition.getSourceState()).thenReturn(expectedSourceState);
+    @DisplayName("Given Transition.transit returns false " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.getSourceState must have the source state")
+    void givenTransition$transitReturnsFalse_whenCallExecute_thenTransitionResult$getSourceStateMustHaveTheSourceState() {
+        final TestState expected = STATE;
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        when(transitionMock.getSourceState()).thenReturn(expected);
+        when(transitionMock.transit(any(StateContext.class))).thenReturn(false);
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        TestState actual = lifecycleManager.execute(statefulObject, EVENT)
+                .getSourceState();
 
-        assertEquals(expectedSourceState, transitionResult.getSourceState());
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenSuccessTransitionWhenExecuteThenTransitionResultMustContainTargetState() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(true);
-        when(transition.getTargetState()).thenReturn("COMPLETED");
+    @DisplayName("Given Transition.transit throws an exception " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.getSourceState must have the source state")
+    void givenTransition$transitThrowsException_whenCallExecute_thenTransitionResult$getSourceStateMustHaveTheSourceState() {
+        final TestState expected = STATE;
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        when(transitionMock.getSourceState()).thenReturn(expected);
+        doThrow(RuntimeException.class).when(transitionMock).transit(any(StateContext.class));
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        TestState actual = lifecycleManager.execute(statefulObject, EVENT)
+                .getSourceState();
 
-        assertNotNull(transitionResult.getTargetState());
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenFailedTransitionWhenExecuteThenTransitionResultMustContainTargetState() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(false);
-        when(transition.getTargetState()).thenReturn("COMPLETED");
+    @DisplayName("When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.getTargetState must have the target state")
+    void whenCallExecute_thenTransitionResult$getTargetStateMustHaveTheSourceState() {
+        final TestState expected = STATE;
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        when(transitionMock.getTargetState()).thenReturn(expected);
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        TestState actual = lifecycleManager.execute(statefulObject, EVENT)
+                .getTargetState();
 
-        assertNotNull(transitionResult.getTargetState());
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenTransitionThrowsExceptionWhenExecuteThenTransitionResultMustContainTargetState() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        doThrow(RuntimeException.class).when(transition).transit(any(StateContext.class));
-        when(transition.getTargetState()).thenReturn("COMPLETED");
+    @DisplayName("Given Transition.transit returns false " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.getTargetState must have the target state")
+    void givenTransition$transitReturnsFalse_whenCallExecute_thenTransitionResult$getTargetStateMustHaveTheSourceState() {
+        final TestState expected = STATE;
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        when(transitionMock.getTargetState()).thenReturn(expected);
+        when(transitionMock.transit(any(StateContext.class))).thenReturn(false);
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        TestState actual = lifecycleManager.execute(statefulObject, EVENT)
+                .getTargetState();
 
-        assertNotNull(transitionResult.getTargetState());
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenSuccessTransitionWhenExecuteThenTargetStateInTransitionResultEqualToTargetStateInTransition() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(true);
-        String expectedTargetState = "COMPLETED";
-        when(transition.getTargetState()).thenReturn(expectedTargetState);
+    @DisplayName("Given Transition.transit throws an exception " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.getTargetState must have the target state")
+    void givenTransition$transitThrowsException_whenCallExecute_thenTransitionResult$getTargetStateMustHaveTheSourceState() {
+        final TestState expected = STATE;
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        when(transitionMock.getTargetState()).thenReturn(expected);
+        doThrow(RuntimeException.class).when(transitionMock).transit(any(StateContext.class));
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        TestState actual = lifecycleManager.execute(statefulObject, EVENT)
+                .getTargetState();
 
-        assertEquals(expectedTargetState, transitionResult.getTargetState());
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenFailedTransitionWhenExecuteThenTargetStateInTransitionResultEqualToTargetStateInTransition() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(false);
-        String expectedTargetState = "COMPLETED";
-        when(transition.getTargetState()).thenReturn(expectedTargetState);
+    @DisplayName("When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.getStateContext must not be null")
+    void whenCallExecute_thenTransitionResult$getStateContextMustNotBeNull() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        StateContext<TestState, TestEvent> actual = lifecycleManager.execute(statefulObject, EVENT)
+                .getStateContext();
 
-        assertEquals(expectedTargetState, transitionResult.getTargetState());
+        assertThat(actual).isNotNull();
     }
 
     @Test
-    void givenTransitionThrowsExceptionWhenExecuteThenTargetStateInTransitionResultEqualToTargetStateInTransition() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        doThrow(RuntimeException.class).when(transition).transit(any(StateContext.class));
-        String expectedTargetState = "COMPLETED";
-        when(transition.getTargetState()).thenReturn(expectedTargetState);
+    @DisplayName("Given Transition.transit returns false " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.getStateContext must not be null")
+    void givenTransition$transitReturnsFalse_whenCallExecute_thenTransitionResult$getStateContextMustNotBeNull() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        when(transitionMock.transit(any(StateContext.class))).thenReturn(false);
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        StateContext<TestState, TestEvent> actual = lifecycleManager.execute(statefulObject, EVENT)
+                .getStateContext();
 
-        assertEquals(expectedTargetState, transitionResult.getTargetState());
+        assertThat(actual).isNotNull();
     }
 
     @Test
-    void givenSuccessTransitionWhenExecuteThenTransitionResultMustContainStateContext() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(true);
+    @DisplayName("Given Transition.transit throws an exception " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.getStateContext must not be null")
+    void givenTransition$transitThrowsException_whenCallExecute_thenTransitionResult$getStateContextMustNotBeNull() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        doThrow(RuntimeException.class).when(transitionMock).transit(any(StateContext.class));
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        StateContext<TestState, TestEvent> actual = lifecycleManager.execute(statefulObject, EVENT)
+                .getStateContext();
 
-        assertNotNull(transitionResult.getStateContext());
+        assertThat(actual).isNotNull();
     }
 
     @Test
-    void givenFailedTransitionWhenExecuteThenTransitionResultMustContainStateContext() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(false);
+    @DisplayName("Given Transition.transit throws an exception " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then TransitionResult.getException must be the exception")
+    void givenTransition$transitThrowsException_whenCallExecute_thenTransitionResult$getExceptionMustBeTheException() {
+        final Class<RuntimeException> expected = RuntimeException.class;
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        doThrow(expected).when(transitionMock).transit(any(StateContext.class));
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        Exception actual = lifecycleManager.execute(statefulObject, EVENT)
+                .getException();
 
-        assertNotNull(transitionResult.getStateContext());
+        assertThat(actual).isInstanceOf(expected);
     }
 
     @Test
-    void givenTransitionThrowsExceptionWhenExecuteThenTransitionResultMustContainStateContext() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        doThrow(RuntimeException.class).when(transition).transit(any(StateContext.class));
+    @DisplayName("When call LifecycleManagerImpl.execute " +
+            "Then StatefulObject.setState must be called once")
+    void whenCallExecute_thenStatefulObject$setTransitionMustBeCalledOnce() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        when(transitionMock.getTargetState()).thenReturn(STATE);
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        lifecycleManager.execute(statefulObject, EVENT);
 
-        assertNotNull(transitionResult.getStateContext());
+        verify(statefulObject, times(1)).setState(any());
     }
 
     @Test
-    void givenSuccessTransitionWhenExecuteThenStateContextInTransitionResultEqualToStateContextPassedToTransition() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        ArgumentCaptor<StateContext> captor = ArgumentCaptor.forClass(StateContext.class);
-        when(transition.transit(captor.capture())).thenReturn(true);
+    @DisplayName("When call LifecycleManagerImpl.execute " +
+            "Then StatefulObject.setState must be called once with state provided by Transition.getTargetState")
+    void whenCallExecute_thenStatefulObject$setTransitionMustBeCalledOnceWithStateProvidedByTransition$getTargetState() {
+        final TestState expected = STATE;
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        when(transitionMock.getTargetState()).thenReturn(expected);
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        lifecycleManager.execute(statefulObject, EVENT);
 
-        assertEquals(captor.getValue(), transitionResult.getStateContext());
+        verify(statefulObject, times(1)).setState(expected);
     }
 
     @Test
-    void givenFailedTransitionWhenExecuteThenStateContextInTransitionResultEqualToStateContextPassedToTransition() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        ArgumentCaptor<StateContext> captor = ArgumentCaptor.forClass(StateContext.class);
-        when(transition.transit(captor.capture())).thenReturn(false);
+    @DisplayName("Given Transition.transit returns false " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then StatefulObject.setState must not be called")
+    void givenTransition$transitReturnsFalse_whenCallExecute_thenStatefulObject$setTransitionMustNotBeCalled() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        when(transitionMock.transit(any(StateContext.class))).thenReturn(false);
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        lifecycleManager.execute(statefulObject, EVENT);
 
-        assertEquals(captor.getValue(), transitionResult.getStateContext());
+        verify(statefulObject, never()).setState(any());
     }
 
     @Test
-    void givenTransitionThrowsExceptionWhenExecuteThenStateContextInTransitionResultEqualToStateContextPassedToTransition() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        ArgumentCaptor<StateContext> captor = ArgumentCaptor.forClass(StateContext.class);
-        doThrow(RuntimeException.class).when(transition).transit(captor.capture());
+    @DisplayName("Given Transition.transit throws an exception " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then StatefulObject.setState must not be called")
+    void givenTransition$transitThrowsException_whenCallExecute_thenStatefulObject$setTransitionMustNotBeCalled() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transitionProviderMock.getTransition(statefulObject, EVENT)).thenReturn(transitionMock);
+        doThrow(RuntimeException.class).when(transitionMock).transit(any(StateContext.class));
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
+        lifecycleManager.execute(statefulObject, EVENT);
 
-        assertEquals(captor.getValue(), transitionResult.getStateContext());
+        verify(statefulObject, never()).setState(any());
     }
 
     @Test
-    void givenTransitionThrowsExceptionWhenExecuteThenTransitionResultMustContainException() {
-        String event = "any";
-        StatefulObject expectedObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(expectedObject, event)).thenReturn(transition);
-        doThrow(RuntimeException.class).when(transition).transit(any(StateContext.class));
+    @DisplayName("Given TransitionProvider.getTransition throws an exception " +
+            "When call LifecycleManagerImpl.execute " +
+            "Then throws the exception from TransitionProvider")
+    void givenTransitionProvider$getTransitionThrowsException_whenCallExecute_thenThrowsExceptionFromTransitionProvider() {
+        final Class<AmbiguousTransitionException> expected = AmbiguousTransitionException.class;
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        doThrow(expected).when(transitionProviderMock).getTransition(statefulObject, EVENT);
 
-        TransitionResult transitionResult = lifecycleManager.execute(expectedObject, event);
-
-        assertNotNull(transitionResult.getException());
-    }
-
-    @Test
-    void givenSuccessTransitionWhenExecuteThenStatefulObject_setTransitionMustBeCalled() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(true);
-        when(transition.getTargetState()).thenReturn("COMPLETED");
-
-        lifecycleManager.execute(statefulObject, event);
-
-        verify(statefulObject, times(1)).setState("COMPLETED");
-    }
-
-    @Test
-    void givenFailedTransitionWhenExecuteThenStatefulObject_setTransitionMustNotBeCalled() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-        when(transition.transit(any(StateContext.class))).thenReturn(false);
-        when(transition.getTargetState()).thenReturn("COMPLETED");
-
-        lifecycleManager.execute(statefulObject, event);
-
-        verify(statefulObject, times(0)).setState(anyString());
-    }
-
-    @Test
-    void givenTransitionThrowsExceptionWhenExecuteThenStatefulObject_setTransitionMustNotBeCalled() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        Transition transition = mock(Transition.class);
-        when(transitionProvider.getTransition(statefulObject, event)).thenReturn(transition);
-        doThrow(RuntimeException.class).when(transition).transit(any(StateContext.class));
-        when(transition.getTargetState()).thenReturn("COMPLETED");
-
-        lifecycleManager.execute(statefulObject, event);
-
-        verify(statefulObject, times(0)).setState(anyString());
-    }
-
-    @Test
-    void givenTransitionProviderThrowsExceptionWhenExecuteThenThrowsExceptionFromTransitionProvider() {
-        String event = "any";
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        doThrow(AmbiguousTransitionException.class).when(transitionProvider).getTransition(statefulObject, event);
-
-        assertThrows(AmbiguousTransitionException.class, () -> lifecycleManager.execute(statefulObject, event));
+        assertThatThrownBy(() -> lifecycleManager.execute(statefulObject, EVENT))
+                .isInstanceOf(expected);
     }
 }

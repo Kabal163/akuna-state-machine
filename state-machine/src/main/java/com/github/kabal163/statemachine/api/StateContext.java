@@ -1,21 +1,30 @@
 package com.github.kabal163.statemachine.api;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Contains information about the transition. It helps to share
  * information between actions and conditions.
+ *
+ * @param <S> type of the state of the {@link StatefulObject stateful object}
+ * @param <E> type of event
  */
-public class StateContext {
+public class StateContext<S, E> {
 
-    private final StatefulObject statefulObject;
-    private final String event;
+    private final StatefulObject<S> statefulObject;
+    private final E event;
     private final Map<String, Object> variables;
 
-    public StateContext(StatefulObject statefulObject,
-                        String event,
+    public StateContext(StatefulObject<S> statefulObject,
+                        E event,
                         Map<String, Object> variables) {
+        Objects.requireNonNull(statefulObject, "StatefulObject must not be null!");
+        Objects.requireNonNull(event, "event must not be null!");
+        Objects.requireNonNull(variables, "variables must not be null!");
+
         this.statefulObject = statefulObject;
         this.event = event;
         this.variables = new HashMap<>(variables);
@@ -29,6 +38,7 @@ public class StateContext {
         variables.putIfAbsent(key, value);
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
     public  <T> T getVariable(String key, Class<T> type) {
         Object value = this.variables.get(key);
@@ -47,7 +57,7 @@ public class StateContext {
         return (T) statefulObject;
     }
 
-    public String getEvent() {
+    public E getEvent() {
         return event;
     }
 }

@@ -1,79 +1,80 @@
 package com.github.kabal163.statemachine;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import com.github.kabal163.statemachine.api.Action;
 import com.github.kabal163.statemachine.api.Condition;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 
-@Slf4j
-@RequiredArgsConstructor
-public class TransitionBuilderImpl implements TransitionBuilder {
+public class TransitionBuilderImpl<S, E> implements TransitionBuilder<S, E> {
 
-    private final Set<Transition> configuredTransitions = new HashSet<>();
-    private Transition configuredTransition;
+    private final Set<Transition<S, E>> configuredTransitions = new HashSet<>();
+    private Transition<S, E> configuredTransition;
 
     @Override
-    public TransitionConfigurer with() {
-        configuredTransition = new Transition();
+    public TransitionConfigurer<S, E> with() {
+        configuredTransition = new Transition<>();
         configuredTransitions.add(configuredTransition);
 
         return this;
     }
 
     @Override
-    public TransitionConfigurer sourceState(String state) {
-        assertConfiguredTransitionIsNotNull();
+    public TransitionConfigurer<S, E> sourceState(S state) {
+        Objects.requireNonNull(state, "sourceState must not be null!");
+        checkConfiguredTransitionIsNotNull();
+
         configuredTransition.setSourceState(state);
 
         return this;
     }
 
     @Override
-    public TransitionConfigurer targetState(String state) {
-        assertConfiguredTransitionIsNotNull();
+    public TransitionConfigurer<S, E> targetState(S state) {
+        Objects.requireNonNull(state, "targetState must not be null!");
+        checkConfiguredTransitionIsNotNull();
+
         configuredTransition.setTargetState(state);
 
         return this;
     }
 
     @Override
-    public TransitionConfigurer event(String event) {
-        assertConfiguredTransitionIsNotNull();
+    public TransitionConfigurer<S, E> event(E event) {
+        Objects.requireNonNull(event, "event must not be null!");
+        checkConfiguredTransitionIsNotNull();
+
         configuredTransition.setEvent(event);
 
         return this;
     }
 
     @Override
-    public TransitionConfigurer condition(Condition condition) {
-        assertConfiguredTransitionIsNotNull();
-        if (condition == null) {
-            throw new IllegalArgumentException("Condition must not be null!");
-        }
+    public TransitionConfigurer<S, E> condition(Condition<S, E> condition) {
+        Objects.requireNonNull(condition, "Condition must not be null!");
+        checkConfiguredTransitionIsNotNull();
+
         configuredTransition.addCondition(condition);
 
         return this;
     }
 
     @Override
-    public TransitionConfigurer action(Action action) {
-        assertConfiguredTransitionIsNotNull();
-        if (action == null) {
-            throw new IllegalArgumentException("Action must not be null!");
-        }
+    public TransitionConfigurer<S, E> action(Action<S, E> action) {
+        Objects.requireNonNull(action, "Action must not be null!");
+        checkConfiguredTransitionIsNotNull();
+
         configuredTransition.addAction(action);
 
         return this;
     }
 
     @Override
-    public Set<Transition> buildTransitions() {
-        for (Transition transition : configuredTransitions) {
+    public Set<Transition<S, E>> buildTransitions() {
+        for (Transition<S, E> transition : configuredTransitions) {
             if (!allNotNull(
                     transition.getSourceState(),
                     transition.getTargetState(),
@@ -86,7 +87,7 @@ public class TransitionBuilderImpl implements TransitionBuilder {
         return new HashSet<>(configuredTransitions);
     }
 
-    private void assertConfiguredTransitionIsNotNull() {
+    private void checkConfiguredTransitionIsNotNull() {
         if (configuredTransition == null) {
             throw new IllegalStateException(ERROR_MESSAGE);
         }

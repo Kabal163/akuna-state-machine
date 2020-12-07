@@ -1,30 +1,39 @@
 package com.github.kabal163.statemachine;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.github.kabal163.statemachine.api.LifecycleManager;
 import com.github.kabal163.statemachine.api.StateContext;
 import com.github.kabal163.statemachine.api.StatefulObject;
 import com.github.kabal163.statemachine.api.TransitionResult;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-@Slf4j
-@RequiredArgsConstructor
-public class LifecycleManagerImpl implements LifecycleManager {
+public class LifecycleManagerImpl<S, E> implements LifecycleManager<S, E> {
 
-    private final TransitionProvider transitionProvider;
+    private static final Logger log = LoggerFactory.getLogger(LifecycleManagerImpl.class);
+
+    private final TransitionProvider<S, E> transitionProvider;
+
+    public LifecycleManagerImpl(TransitionProvider<S, E> transitionProvider) {
+        this.transitionProvider = transitionProvider;
+    }
 
     @Override
-    public TransitionResult execute(StatefulObject statefulObject, String event) {
+    public TransitionResult<S, E> execute(StatefulObject<S> statefulObject, E event) {
         return execute(statefulObject, event, new HashMap<>());
     }
 
     @Override
-    public TransitionResult execute(StatefulObject statefulObject, String event, Map<String, Object> variables) {
-        Transition transition = transitionProvider.getTransition(statefulObject, event);
-        StateContext context = new StateContext(statefulObject, event, variables);
+    public TransitionResult<S, E> execute(StatefulObject<S> statefulObject, E event, Map<String, Object> variables) {
+        Objects.requireNonNull(statefulObject, "StatefulObject must not be null!");
+        Objects.requireNonNull(event, "event must not be null!");
+        Objects.requireNonNull(variables, "Map of variables must not be null!");
+
+        Transition<S, E> transition = transitionProvider.getTransition(statefulObject, event);
+        StateContext<S, E> context = new StateContext<>(statefulObject, event, variables);
         boolean success = false;
         Exception exception = null;
 
@@ -44,7 +53,7 @@ public class LifecycleManagerImpl implements LifecycleManager {
             statefulObject.setState(transition.getTargetState());
         }
 
-        return new TransitionResult(
+        return new TransitionResult<>(
                 success,
                 context,
                 transition.getSourceState(),

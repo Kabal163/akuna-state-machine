@@ -1,5 +1,0 @@
-spring:
-  application:
-    name: state-machine-sample
-  profiles:
-    active: rus

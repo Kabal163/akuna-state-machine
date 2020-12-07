@@ -1,21 +1,25 @@
 package com.github.kabal163.statemachine.api;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import com.github.kabal163.statemachine.TestEvent;
+import com.github.kabal163.statemachine.TestState;
 
 import java.util.HashMap;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static com.github.kabal163.statemachine.TestEvent.EVENT;
 
 class StateContextTest {
 
     @Mock
-    StatefulObject statefulObject;
+    StatefulObject<TestState> statefulObject;
 
     @BeforeEach
     void setUp() {
@@ -23,56 +27,87 @@ class StateContextTest {
     }
 
     @Test
-    void givenContextCreatedWithEmptyMapWhenPutVariableThenValueMustBeInserted() {
-        StateContext context = new StateContext(statefulObject, "anyEvent", emptyMap());
+    @DisplayName("Given StateContext is created with empty map " +
+            "When call StateContext.putVariable " +
+            "Then variable must be inserted")
+    void givenStateContextCreatedWithEmptyMap_whenCallPutVariable_thenValueMustBeInserted() {
+        final String expected = "value";
+        StateContext<TestState, TestEvent> context = new StateContext<>(statefulObject, EVENT, emptyMap());
         context.putVariable("key", "value");
+        String actual = context.getVariable("key", String.class);
 
-        assertEquals("value", context.getVariable("key", String.class));
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenContextCreatedWithEmptyMapWhenPutVariableIfAbsentThenValueMustBeInserted() {
-        StateContext context = new StateContext(statefulObject, "anyEvent", emptyMap());
-        context.putIfAbsentVariable("key", "value");
+    @DisplayName("Given StateContext is created with empty map " +
+            "When call StateContext.putIfAbsentVariable " +
+            "Then variable must be inserted")
+    void givenStateContextCreatedWithEmptyMap_whenCallPutVariableIfAbsent_thenValueMustBeInserted() {
+        final String expected = "value";
+        StateContext<TestState, TestEvent> context = new StateContext<>(statefulObject, EVENT, emptyMap());
+        context.putIfAbsentVariable("key", expected);
+        String actual = context.getVariable("key", String.class);
 
-        assertEquals("value", context.getVariable("key", String.class));
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenKeyDoesntExistInContextWhenPutVariableIfAbsentThenValueMustBeInserted() {
-        StateContext context = new StateContext(statefulObject, "anyEvent", new HashMap<>());
-        context.putIfAbsentVariable("key", "value");
+    @DisplayName("Given key doesn't exist in StateContext " +
+            "When call StateContext.putIfAbsentVariable " +
+            "Then variable must be inserted")
+    void givenKeyDoesntExistInStateContext_whenCallPutVariableIfAbsent_thenValueMustBeInserted() {
+        final String expected = "value";
+        StateContext<TestState, TestEvent> context = new StateContext<>(statefulObject, EVENT, new HashMap<>());
+        context.putIfAbsentVariable("key", expected);
+        String actual = context.getVariable("key", String.class);
 
-        assertEquals("value", context.getVariable("key", String.class));
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenKeyAlreadyExistsInContextWhenPutVariableIfAbsentThenValueMustNotBeInserted() {
-        StateContext context = new StateContext(statefulObject, "anyEvent", singletonMap("key", "value"));
+    @DisplayName("Given key already exists in StateContext " +
+            "When call StateContext.putIfAbsentVariable " +
+            "Then variable must not be inserted")
+    void givenKeyAlreadyExistsInContext_whenCallPutVariableIfAbsent_thenValueMustNotBeInserted() {
+        final String expected = "value";
+        StateContext<TestState, TestEvent> context = new StateContext<>(statefulObject, EVENT, singletonMap("key", expected));
         context.putIfAbsentVariable("key", "value1");
+        String actual = context.getVariable("key", String.class);
 
-        assertEquals("value", context.getVariable("key", String.class));
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void whenGetEventThenMustReturnEvent() {
-        StateContext context = new StateContext(statefulObject, "anyEvent", emptyMap());
-        String event = context.getEvent();
+    @DisplayName("When call StateContext.getEvent " +
+            "Then must return the event")
+    void whenCallGetEvent_thenMustReturnTheEvent() {
+        final TestEvent expected = EVENT;
+        StateContext<TestState, TestEvent> context = new StateContext<>(statefulObject, expected, emptyMap());
+        TestEvent actual = context.getEvent();
 
-        assertEquals("anyEvent", event);
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void givenValueIsStringTypeWhenGetVariableWithStringTypeThenReturnsValue() {
-        StateContext context = new StateContext(statefulObject, "anyEvent", singletonMap("key", "value"));
-        String value = context.getVariable("key", String.class);
+    @DisplayName("Given value of string type " +
+            "When call StateContext.getVariable with String.class as argument" +
+            "Then returns value of string type")
+    void givenValueOfStringType_whenCallGetVariableWithStringType_thenReturnsValueOfStringType() {
+        StateContext<TestState, TestEvent> context = new StateContext<>(statefulObject, EVENT, singletonMap("key", "value"));
+        String actual = context.getVariable("key", String.class);
 
-        assertEquals(String.class, value.getClass());
+        assertThat(actual.getClass()).isEqualTo(String.class);
     }
 
     @Test
-    void givenValueIsStringTypeWhenGetVariableWithIntegerTypeThenThrowsIllegalArgumentException() {
-        StateContext context = new StateContext(statefulObject, "anyEvent", singletonMap("key", "value"));
-        assertThrows(IllegalArgumentException.class, () -> context.getVariable("key", Integer.class));
+    @DisplayName("Given of string type " +
+            "When call StateContext.getVariable with Integer.class as argument " +
+            "Then throws IllegalArgumentException")
+    void givenValueOfStringType_whenCallGetVariableWithIntegerType_thenThrowsIllegalArgumentException() {
+        StateContext<TestState, TestEvent> context = new StateContext(statefulObject, EVENT, singletonMap("key", "value"));
+        assertThatThrownBy(() -> context.getVariable("key", Integer.class))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Incorrect type specified for variable");
     }
 }

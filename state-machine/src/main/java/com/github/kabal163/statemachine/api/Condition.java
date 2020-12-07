@@ -7,8 +7,11 @@ package com.github.kabal163.statemachine.api;
  * as impossible and should not be executed.
  * Implement this interface to define if the current transition is allowed
  * to be executed. Use it in your {@link LifecycleConfiguration} lifecycle configuration.
+ *
+ * @param <S> type of the state of the {@link StatefulObject stateful object}
+ * @param <E> type of event
  */
-public interface Condition {
+public interface Condition<S, E> {
 
     /**
      * Defines if the current transition is allowed to be executed.
@@ -18,5 +21,5 @@ public interface Condition {
      * @param context contains information about the current transition
      * @return true if all conditions are met requirements. Otherwise false
      */
-    boolean evaluate(StateContext context);
+    boolean evaluate(StateContext<S, E> context);
 }

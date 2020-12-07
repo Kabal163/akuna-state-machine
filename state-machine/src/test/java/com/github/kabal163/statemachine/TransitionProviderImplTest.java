@@ -1,28 +1,29 @@
 package com.github.kabal163.statemachine;
 
-import com.github.kabal163.statemachine.api.LifecycleConfiguration;
-import com.github.kabal163.statemachine.api.StatefulObject;
-import com.github.kabal163.statemachine.api.TransitionsInitializer;
-import com.github.kabal163.statemachine.exception.AmbiguousTransitionException;
-import com.github.kabal163.statemachine.exception.LifecycleNotFoundException;
-import com.github.kabal163.statemachine.exception.TransitionNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.verification.AtLeast;
+import com.github.kabal163.statemachine.api.StatefulObject;
+import com.github.kabal163.statemachine.exception.AmbiguousTransitionException;
+import com.github.kabal163.statemachine.exception.LifecycleNotFoundException;
+import com.github.kabal163.statemachine.exception.TransitionNotFoundException;
 
 import java.util.Map;
 import java.util.Set;
 
-import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static com.github.kabal163.statemachine.TestEvent.ANOTHER_EVENT;
+import static com.github.kabal163.statemachine.TestEvent.EVENT;
+import static com.github.kabal163.statemachine.TestState.ANOTHER_STATE;
+import static com.github.kabal163.statemachine.TestState.STATE;
 
 class TransitionProviderImplTest {
 
@@ -30,172 +31,187 @@ class TransitionProviderImplTest {
     static final String LIFECYCLE_NAME_2 = "lifecycle_2";
 
     @Mock
-    TransitionsInitializer transitionsInitializer;
+    Transition<TestState, TestEvent> transition1;
 
     @Mock
-    LifecycleConfiguration lifecycleConfiguration;
+    Transition<TestState, TestEvent> transition2;
 
     @Mock
-    Transition transition1;
+    Transition<TestState, TestEvent> transition3;
 
-    @Mock
-    Transition transition2;
-
-    @Mock
-    Transition transition3;
-
-    TransitionProviderImpl transitionProvider;
+    TransitionProviderImpl<TestState, TestEvent> transitionProvider;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.initMocks(this);
-        when(transitionsInitializer.initialize(any()))
-                .thenReturn(
-                        Map.of(
-                                LIFECYCLE_NAME_1, Set.of(transition1, transition2),
-                                LIFECYCLE_NAME_2, Set.of(transition3)));
-        transitionProvider = TransitionProviderImpl.builder()
-                .transitionInitializer(transitionsInitializer)
-                .configs(singletonList(lifecycleConfiguration))
-                .build();
+        transitionProvider = new TransitionProviderImpl<>(getLifecycles());
     }
 
     @Test
-    void givenStatefulObjectIsNullWhenGetTransitionThenThrowsIllegalArgumentException() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> transitionProvider.getTransition(null, "anyEvent"));
+    @DisplayName("Given StatefulObject is null " +
+            "When call TransitionProviderImpl.getTransition " +
+            "Then throws NullPointerException")
+    void givenStatefulObjectIsNull_whenCallGetTransition_thenThrowsNullPointerException() {
+        assertThatThrownBy(() -> transitionProvider.getTransition(null, EVENT))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("must not be null");
     }
 
     @Test
-    void givenEventIsNullWhenGetTransitionThenThrowsIllegalArgumentException() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> transitionProvider.getTransition(mock(StatefulObject.class), null));
+    @DisplayName("Given event is null " +
+            "When call TransitionProviderImpl.getTransition " +
+            "Then throws NullPointerException")
+    void givenEventIsNull_whenCallGetTransition_thenThrowsNullPointerException() {
+        assertThatThrownBy(() -> transitionProvider.getTransition(mock(StatefulObject.class), null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("must not be null");
     }
 
     @Test
-    void givenEventIsEmptyWhenGetTransitionThenThrowsIllegalArgumentException() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> transitionProvider.getTransition(mock(StatefulObject.class), ""));
+    @DisplayName("Given StatefulObject returns non existent lifecycle name " +
+            "When call TransitionProviderImpl.getTransition " +
+            "Then throws LifecycleNotFoundException")
+    void givenStatefulObjectReturnsNonExistentLifecycleName_whenGetTransition_thenThrowsLifecycleNotFoundException() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(statefulObject.getLifecycleName()).thenReturn("nonExistent");
+
+        assertThatThrownBy(() -> transitionProvider.getTransition(statefulObject, EVENT))
+                .isInstanceOf(LifecycleNotFoundException.class)
+                .hasMessageContaining("There is no such lifecycle");
     }
 
     @Test
-    void givenStatefulObjectReturnsNotExistingLifecycleNameWhenGetTransitionThenThrowsLifecycleNotFoundException() {
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        when(statefulObject.getLifecycleName()).thenReturn("NOT_EXISTING_LIFECYCLE_NAME");
-
-        assertThrows(
-                LifecycleNotFoundException.class,
-                () -> transitionProvider.getTransition(statefulObject, "anyEvent"));
-    }
-
-    @Test
-    void givenTransition1ContainsMatchingSourceStateAndEventWhenGetTransitionThenReturnTransition1() {
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        when(statefulObject.getLifecycleName()).thenReturn(LIFECYCLE_NAME_1);
-        when(statefulObject.getState()).thenReturn("testState");
-        when(transition1.getSourceState()).thenReturn("testState");
-        when(transition1.getEvent()).thenReturn("testEvent");
-
-        Transition actualResult = transitionProvider.getTransition(statefulObject, "testEvent");
-
-        assertEquals(transition1, actualResult);
-    }
-
-    @Test
-    void givenThereIsNotMatchingTransitionsDueToWrongStateWhenGetTransitionThenThrowsTransitionNotFoundException() {
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        when(statefulObject.getLifecycleName()).thenReturn(LIFECYCLE_NAME_2);
-        when(statefulObject.getState()).thenReturn("wrongState");
-        when(transition3.getSourceState()).thenReturn("testState");
-        when(transition3.getEvent()).thenReturn("testEvent");
-
-        assertThrows(
-                TransitionNotFoundException.class,
-                () -> transitionProvider.getTransition(statefulObject, "testEvent"));
-    }
-
-    @Test
-    void givenThereIsNotMatchingTransitionsDueToWrongEventWhenGetTransitionThenThrowsTransitionNotFoundException() {
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        when(statefulObject.getLifecycleName()).thenReturn(LIFECYCLE_NAME_2);
-        when(statefulObject.getState()).thenReturn("testState");
-        when(transition3.getSourceState()).thenReturn("testState");
-        when(transition3.getEvent()).thenReturn("testEvent");
-
-        assertThrows(
-                TransitionNotFoundException.class,
-                () -> transitionProvider.getTransition(statefulObject, "wrongEvent"));
-    }
-
-    @Test
-    void givenExistsTwoTransitionsWithSameSourceStateAndEventWhenGetTransitionThenThrowsAmbiguousTransitionException() {
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        when(statefulObject.getLifecycleName()).thenReturn(LIFECYCLE_NAME_1);
-        when(statefulObject.getState()).thenReturn("sameState");
-        when(transition1.getSourceState()).thenReturn("sameState");
-        when(transition1.getEvent()).thenReturn("sameEvent");
-        when(transition2.getSourceState()).thenReturn("sameState");
-        when(transition2.getEvent()).thenReturn("sameEvent");
-
-        assertThrows(
-                AmbiguousTransitionException.class,
-                () -> transitionProvider.getTransition(statefulObject, "sameEvent"));
-    }
-
-    @Test
-    void givenStatefulObjectReturnsNullLifecycleNameWhenGetTransitionThenThrowsLifecycleNotFoundException() {
-        StatefulObject statefulObject = mock(StatefulObject.class);
+    @DisplayName("Given StatefulObject.getLifecycleName returns null " +
+            "When call TransitionProviderImpl.getTransition " +
+            "Then throws LifecycleNotFoundException")
+    void givenStatefulObject$getLifecycleNameReturnsNull_whenGetTransition_thenThrowsLifecycleNotFoundException() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
         when(statefulObject.getLifecycleName()).thenReturn(null);
 
-        assertThrows(
-                LifecycleNotFoundException.class,
-                () -> transitionProvider.getTransition(statefulObject, "anyEvent"));
+        assertThatThrownBy(() -> transitionProvider.getTransition(statefulObject, EVENT))
+                .isInstanceOf(LifecycleNotFoundException.class)
+                .hasMessageContaining("Null or empty lifecycle names are not supported");
     }
 
     @Test
-    void givenStatefulObjectReturnsEmptyLifecycleNameWhenGetTransitionThenThrowsLifecycleNotFoundException() {
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        when(statefulObject.getLifecycleName()).thenReturn("");
+    @DisplayName("Given StatefulObject.getLifecycleName returns empty string " +
+            "When call TransitionProviderImpl.getTransition " +
+            "Then throws LifecycleNotFoundException")
+    void givenStatefulObject$getLifecycleNameReturnsEmptyString_whenGetTransition_thenThrowsLifecycleNotFoundException() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(statefulObject.getLifecycleName()).thenReturn(EMPTY);
 
-        assertThrows(
-                LifecycleNotFoundException.class,
-                () -> transitionProvider.getTransition(statefulObject, "anyEvent"));
+        assertThatThrownBy(() -> transitionProvider.getTransition(statefulObject, EVENT))
+                .isInstanceOf(LifecycleNotFoundException.class)
+                .hasMessageContaining("Null or empty lifecycle names are not supported");
     }
 
-    /**
-     * Provider must match transition's source state with stateful
-     * object's current state
-     */
     @Test
-    void whenGetTransitionThenStatefulObject_getStateMustBeCalled() {
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        when(statefulObject.getState()).thenReturn("testState");
+    @DisplayName("When call TransitionProviderImpl.getTransition " +
+            "Then returns not null")
+    void whenCallGetTransition_thenReturnsNotNull() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transition1.getSourceState()).thenReturn(STATE);
+        when(transition1.getEvent()).thenReturn(EVENT);
         when(statefulObject.getLifecycleName()).thenReturn(LIFECYCLE_NAME_1);
-        when(transition1.getSourceState()).thenReturn("testState");
-        when(transition1.getEvent()).thenReturn("testEvent");
+        when(statefulObject.getState()).thenReturn(STATE);
 
-        transitionProvider.getTransition(statefulObject, "testEvent");
+        Transition<TestState, TestEvent> actual = transitionProvider.getTransition(statefulObject, EVENT);
 
-        verify(statefulObject, times(1)).getState();
+        assertThat(actual).isNotNull();
     }
 
-    /**
-     * Provider must search transitions according the lifecycle name
-     * provided by the stateful object
-     */
     @Test
-    void whenGetTransitionThenStatefulObject_getLifecycleNameMustBeCalled() {
-        StatefulObject statefulObject = mock(StatefulObject.class);
-        when(statefulObject.getState()).thenReturn("testState");
+    @DisplayName("Given StatefulObject.getState returns not matching source state " +
+            "When call TransitionProviderImpl.getTransition " +
+            "Then throws TransitionNotFoundException")
+    void givenNotMatchingSourceState_whenGetTransition_thenThrowsTransitionNotFoundException() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transition3.getSourceState()).thenReturn(STATE);
+        when(transition3.getEvent()).thenReturn(EVENT);
+        when(statefulObject.getLifecycleName()).thenReturn(LIFECYCLE_NAME_2);
+        when(statefulObject.getState()).thenReturn(ANOTHER_STATE);
+
+        assertThatThrownBy(() -> transitionProvider.getTransition(statefulObject, EVENT))
+                .isInstanceOf(TransitionNotFoundException.class)
+                .hasMessageContaining("no matching transition");
+    }
+
+    @Test
+    @DisplayName("Given StatefulObject.getState returns not matching event " +
+            "When call TransitionProviderImpl.getTransition " +
+            "Then throws TransitionNotFoundException")
+    void givenNotMatchingEvent_whenGetTransition_thenThrowsTransitionNotFoundException() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transition3.getSourceState()).thenReturn(STATE);
+        when(transition3.getEvent()).thenReturn(EVENT);
+        when(statefulObject.getLifecycleName()).thenReturn(LIFECYCLE_NAME_2);
+        when(statefulObject.getState()).thenReturn(STATE);
+
+        assertThatThrownBy(() -> transitionProvider.getTransition(statefulObject, ANOTHER_EVENT))
+                .isInstanceOf(TransitionNotFoundException.class)
+                .hasMessageContaining("no matching transition");
+    }
+
+    @Test
+    @DisplayName("Given two transitions with same source state and event " +
+            "When call TransitionProviderImpl.getTransition " +
+            "Then throws AmbiguousTransitionException")
+    void givenTwoTransitionsWithSameSourceStateAndEvent_whenGetTransition_thenThrowsAmbiguousTransitionException() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transition1.getSourceState()).thenReturn(STATE);
+        when(transition1.getEvent()).thenReturn(EVENT);
+        when(transition2.getSourceState()).thenReturn(STATE);
+        when(transition2.getEvent()).thenReturn(EVENT);
         when(statefulObject.getLifecycleName()).thenReturn(LIFECYCLE_NAME_1);
-        when(transition1.getSourceState()).thenReturn("testState");
-        when(transition1.getEvent()).thenReturn("testEvent");
+        when(statefulObject.getState()).thenReturn(STATE);
 
-        transitionProvider.getTransition(statefulObject, "testEvent");
+        assertThatThrownBy(() -> transitionProvider.getTransition(statefulObject, EVENT))
+                .isInstanceOf(AmbiguousTransitionException.class)
+                .hasMessageContaining("more then one transition");
+    }
 
-        verify(statefulObject, new AtLeast(1)).getLifecycleName();
+    @Test
+    @DisplayName("When call TransitionProviderImpl.getTransition " +
+            "Then StatefulObject.getState must be call at least once")
+    void whenGetTransition_thenStatefulObject$getStateMustBeCalledAtLeastOnce() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transition1.getSourceState()).thenReturn(STATE);
+        when(transition1.getEvent()).thenReturn(EVENT);
+        when(statefulObject.getState()).thenReturn(STATE);
+        when(statefulObject.getLifecycleName()).thenReturn(LIFECYCLE_NAME_1);
+
+        transitionProvider.getTransition(statefulObject, EVENT);
+
+        verify(statefulObject, atLeastOnce()).getState();
+    }
+
+    @Test
+    @DisplayName("When call TransitionProviderImpl.getTransition " +
+            "Then StatefulObject.getLifecycleName must be call at least once")
+    void whenGetTransition_thenStatefulObject$getLifecycleNameMustBeCalledAtLeastOnce() {
+        StatefulObject<TestState> statefulObject = mock(StatefulObject.class);
+        when(transition1.getSourceState()).thenReturn(STATE);
+        when(transition1.getEvent()).thenReturn(EVENT);
+        when(statefulObject.getState()).thenReturn(STATE);
+        when(statefulObject.getLifecycleName()).thenReturn(LIFECYCLE_NAME_1);
+
+        transitionProvider.getTransition(statefulObject, EVENT);
+
+        verify(statefulObject, atLeastOnce()).getLifecycleName();
+    }
+
+    private Map<String, Lifecycle<TestState, TestEvent>> getLifecycles() {
+        Lifecycle<TestState, TestEvent> lifecycle1 = LifecycleImpl.<TestState, TestEvent>builder()
+                .name(LIFECYCLE_NAME_1)
+                .transitions(Set.of(transition1, transition2))
+                .build();
+        Lifecycle<TestState, TestEvent> lifecycle2 = LifecycleImpl.<TestState, TestEvent>builder()
+                .name(LIFECYCLE_NAME_2)
+                .transitions(Set.of(transition3))
+                .build();
+        return Map.of(
+                LIFECYCLE_NAME_1, lifecycle1,
+                LIFECYCLE_NAME_2, lifecycle2);
     }
 }

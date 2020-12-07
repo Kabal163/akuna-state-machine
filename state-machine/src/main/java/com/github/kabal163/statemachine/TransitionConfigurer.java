@@ -2,6 +2,7 @@ package com.github.kabal163.statemachine;
 
 import com.github.kabal163.statemachine.api.Action;
 import com.github.kabal163.statemachine.api.Condition;
+import com.github.kabal163.statemachine.api.StatefulObject;
 
 /**
  * Convenient component which helps to configure the lifecycle effortless.
@@ -11,8 +12,11 @@ import com.github.kabal163.statemachine.api.Condition;
  * For more details see: https://github.com/Kabal163/akuna-state-machine/tree/master/state-machine-spring-boot-samples
  * Any configured transition must contain at least {@code sourceState}, {@code targetState} and {@code event}
  * The other attributes are optional
+ *
+ * @param <S> type of the state of the {@link StatefulObject stateful object}
+ * @param <E> type of event
  */
-public interface TransitionConfigurer {
+public interface TransitionConfigurer<S, E> {
 
     /**
      * Used to define the new one described transition.
@@ -20,7 +24,7 @@ public interface TransitionConfigurer {
      *
      * @return the configurer instance
      */
-    TransitionConfigurer with();
+    TransitionConfigurer<S, E> with();
 
     /**
      * Defines a state which must correspond to the stateful object's state
@@ -32,8 +36,9 @@ public interface TransitionConfigurer {
      * @param state state which must correspond to the stateful object's state
      *              at the moment of start a transition
      * @return the configurer instance
+     * @throws NullPointerException if {@code state} is {@code null}
      */
-    TransitionConfigurer sourceState(String state);
+    TransitionConfigurer<S, E> sourceState(S state);
 
     /**
      * Defines a desired state which should be on the stateful object
@@ -45,8 +50,9 @@ public interface TransitionConfigurer {
      * @param state the desired state which should be on the stateful object
      *              after transition finish
      * @return the configurer instance
+     * @throws NullPointerException if {@code state} is {@code null}
      */
-    TransitionConfigurer targetState(String state);
+    TransitionConfigurer<S, E> targetState(S state);
 
     /**
      * Defines a trigger which along with the source state defines the transition
@@ -57,8 +63,9 @@ public interface TransitionConfigurer {
      *
      * @param event a trigger which defines a cause of transition execution
      * @return the configurer instance
+     * @throws NullPointerException if {@code event} is {@code null}
      */
-    TransitionConfigurer event(String event);
+    TransitionConfigurer<S, E> event(E event);
 
     /**
      * Defines a guard which prevents transition execution. Each transition
@@ -69,8 +76,9 @@ public interface TransitionConfigurer {
      *
      * @param condition a guard which prevents transition execution
      * @return the configurer instance
+     * @throws NullPointerException if {@code condition} is {@code null}
      */
-    TransitionConfigurer condition(Condition condition);
+    TransitionConfigurer<S, E> condition(Condition<S, E> condition);
 
     /**
      * Defines a piece of work which must be performed in order to transit
@@ -81,6 +89,7 @@ public interface TransitionConfigurer {
      * @param action a piece of work which must be performed in order to transit
      *               the stateful object to the target state
      * @return the configurer instance
+     * @throws NullPointerException if {@code action} is {@code null}
      */
-    TransitionConfigurer action(Action action);
+    TransitionConfigurer<S, E> action(Action<S, E> action);
 }

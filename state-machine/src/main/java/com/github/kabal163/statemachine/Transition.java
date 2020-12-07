@@ -3,7 +3,6 @@ package com.github.kabal163.statemachine;
 import com.github.kabal163.statemachine.api.Action;
 import com.github.kabal163.statemachine.api.Condition;
 import com.github.kabal163.statemachine.api.StateContext;
-import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,17 +11,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-@Data
-public class Transition {
+public class Transition<S, E> {
 
-    private String sourceState;
-    private String targetState;
-    private String event;
+    private S sourceState;
+    private S targetState;
+    private E event;
 
-    private Set<Condition> conditions = new HashSet<>();
-    private List<Action> actions = new LinkedList<>();
+    private Set<Condition<S, E>> conditions = new HashSet<>();
+    private List<Action<S, E>> actions = new LinkedList<>();
 
-    public boolean transit(StateContext context) {
+    public boolean transit(StateContext<S, E> context) {
         if (!conditions.stream().allMatch(condition -> condition.evaluate(context))) {
             return false;
         }
@@ -31,19 +29,43 @@ public class Transition {
         return true;
     }
 
-    public void addAction(Action action) {
+    public void addAction(Action<S, E> action) {
         actions.add(action);
     }
 
-    public void addCondition(Condition condition) {
+    public void addCondition(Condition<S, E> condition) {
         conditions.add(condition);
     }
 
-    public Collection<Condition> getConditions() {
+    public Collection<Condition<S, E>> getConditions() {
         return new HashSet<>(conditions);
     }
 
-    public Collection<Action> getActions() {
+    public Collection<Action<S, E>> getActions() {
         return new ArrayList<>(actions);
+    }
+
+    public S getSourceState() {
+        return sourceState;
+    }
+
+    public S getTargetState() {
+        return targetState;
+    }
+
+    public E getEvent() {
+        return event;
+    }
+
+    public void setSourceState(S sourceState) {
+        this.sourceState = sourceState;
+    }
+
+    public void setTargetState(S targetState) {
+        this.targetState = targetState;
+    }
+
+    public void setEvent(E event) {
+        this.event = event;
     }
 }
