@@ -1,5 +1,7 @@
 package com.github.kabal163.statemachine.api;
 
+import javax.annotation.Nullable;
+
 /**
  * Contains the main information about executed transition.
  * If there were no exceptions then {@code exception} field
@@ -38,13 +40,14 @@ public class TransitionResult<S, E> {
      * Any exception which happened during actions or conditions execution
      * {@code null} if nothing happened
      */
+    @Nullable
     private final Exception exception;
 
     public TransitionResult(boolean succeeded,
                             StateContext<S, E> stateContext,
                             S sourceState,
                             S targetState,
-                            Exception exception) {
+                            @Nullable Exception exception) {
         this.succeeded = succeeded;
         this.stateContext = stateContext;
         this.sourceState = sourceState;
@@ -68,6 +71,7 @@ public class TransitionResult<S, E> {
         return targetState;
     }
 
+    @Nullable
     public Exception getException() {
         return exception;
     }
