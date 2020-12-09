@@ -5,20 +5,37 @@ import com.github.kabal163.statemachine.api.Condition;
 import com.github.kabal163.statemachine.api.StateContext;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class Transition<S, E> {
 
-    private S sourceState;
-    private S targetState;
-    private E event;
+    private final S sourceState;
+    private final S targetState;
+    private final E event;
 
-    private Set<Condition<S, E>> conditions = new HashSet<>();
-    private List<Action<S, E>> actions = new LinkedList<>();
+    private final Set<Condition<S, E>> conditions;
+    private final List<Action<S, E>> actions;
+
+    public Transition(S sourceState,
+                      S targetState,
+                      E event,
+                      Set<Condition<S, E>> conditions,
+                      List<Action<S, E>> actions) {
+        Objects.requireNonNull(sourceState, "sourceState must not be null!");
+        Objects.requireNonNull(targetState, "targetState must not be null!");
+        Objects.requireNonNull(event, "event must not be null!");
+        Objects.requireNonNull(conditions, "conditions must not be null!");
+        Objects.requireNonNull(actions, "actions must not be null!");
+
+        this.sourceState = sourceState;
+        this.targetState = targetState;
+        this.event = event;
+        this.conditions = conditions;
+        this.actions = actions;
+    }
 
     public boolean transit(StateContext<S, E> context) {
         if (!conditions.stream().allMatch(condition -> condition.evaluate(context))) {
@@ -29,19 +46,11 @@ public class Transition<S, E> {
         return true;
     }
 
-    public void addAction(Action<S, E> action) {
-        actions.add(action);
-    }
-
-    public void addCondition(Condition<S, E> condition) {
-        conditions.add(condition);
-    }
-
-    public Collection<Condition<S, E>> getConditions() {
+    public Set<Condition<S, E>> getConditions() {
         return new HashSet<>(conditions);
     }
 
-    public Collection<Action<S, E>> getActions() {
+    public List<Action<S, E>> getActions() {
         return new ArrayList<>(actions);
     }
 
@@ -55,17 +64,5 @@ public class Transition<S, E> {
 
     public E getEvent() {
         return event;
-    }
-
-    public void setSourceState(S sourceState) {
-        this.sourceState = sourceState;
-    }
-
-    public void setTargetState(S targetState) {
-        this.targetState = targetState;
-    }
-
-    public void setEvent(E event) {
-        this.event = event;
     }
 }

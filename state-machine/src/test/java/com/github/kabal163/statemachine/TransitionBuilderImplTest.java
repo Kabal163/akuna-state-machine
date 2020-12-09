@@ -1,38 +1,40 @@
 package com.github.kabal163.statemachine;
 
+import com.github.kabal163.statemachine.api.Action;
+import com.github.kabal163.statemachine.api.Condition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import com.github.kabal163.statemachine.api.Action;
-import com.github.kabal163.statemachine.api.Condition;
+import org.mockito.MockitoAnnotations;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static com.github.kabal163.statemachine.TestEvent.EVENT;
 import static com.github.kabal163.statemachine.TestState.ANOTHER_STATE;
 import static com.github.kabal163.statemachine.TestState.STATE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class TransitionBuilderImplTest {
 
     TransitionBuilderImpl<TestState, TestEvent> transitionBuilder;
 
-    Action<TestState, TestEvent> action;
-    Condition<TestState, TestEvent> condition;
-
-    TransitionBuilderImplTest() {
-        action = Mockito.mock(Action.class);
-        condition = Mockito.mock(Condition.class);
-    }
+    //@formatted:off
+    @Mock Action<TestState, TestEvent> action;
+    @Mock Condition<TestState, TestEvent> condition;
+    //@formatted:on
 
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.initMocks(this);
         transitionBuilder = new TransitionBuilderImpl<>();
     }
 
@@ -231,6 +233,37 @@ class TransitionBuilderImplTest {
                 .orElseThrow();
 
         assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    @DisplayName("Given five actions added with particular order " +
+            "When call TransitionBuilderImpl.buildTransitions " +
+            "Then returns transition with collection of actions which has the same order")
+    void givenFiveActionsAddedWithParticularOrder_whenCallBuildTransitions_thenReturnsTransitionWithActionsWhichHaveTheSameOrder() {
+        final List<Action<TestState, TestEvent>> expected = List.of(
+                Mockito.mock(Action.class),
+                Mockito.mock(Action.class),
+                Mockito.mock(Action.class),
+                Mockito.mock(Action.class),
+                Mockito.mock(Action.class)
+        );
+
+        transitionBuilder
+                .with()
+                .sourceState(STATE)
+                .targetState(ANOTHER_STATE)
+                .event(EVENT)
+                .condition(this.condition);
+        expected.forEach(transitionBuilder::action);
+
+        List<Action<TestState, TestEvent>> actual = transitionBuilder.buildTransitions().stream()
+                .findFirst()
+                .orElseThrow()
+                .getActions();
+
+        assertThat(actual)
+                .isSortedAccordingTo(Comparator.comparingInt(expected::indexOf));
     }
 
     @Test
