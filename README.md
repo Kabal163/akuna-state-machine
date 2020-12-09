@@ -30,7 +30,7 @@ returns false then transition will not be performed.
     <dependency>
         <groupId>com.github.kabal163</groupId>
         <artifactId>state-machine</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </dependency>
 
 You need to implement <code>LifecycleConfiguration</code> and configure your lifecycle.
