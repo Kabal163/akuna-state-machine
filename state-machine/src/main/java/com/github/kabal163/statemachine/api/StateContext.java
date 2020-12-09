@@ -53,7 +53,7 @@ public class StateContext<S, E> {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getStatefulObject() {
+    public <T extends StatefulObject<S>> T getStatefulObject() {
         return (T) statefulObject;
     }
 
