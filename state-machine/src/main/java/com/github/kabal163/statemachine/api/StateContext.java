@@ -1,5 +1,7 @@
 package com.github.kabal163.statemachine.api;
 
+import com.github.kabal163.statemachine.exception.ContextVariableNotFoundException;
+
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +38,19 @@ public class StateContext<S, E> {
 
     public void putIfAbsentVariable(String key, Object value) {
         variables.putIfAbsent(key, value);
+    }
+
+    public <T> T getVariableOrElseThrow(String key, Class<T> type) {
+        ContextVariableNotFoundException exception = new ContextVariableNotFoundException("Expected that StateContext contains a key but it doesn't! The key: " + key);
+        return getVariableOrElseThrow(key, type, exception);
+    }
+
+    public <T> T getVariableOrElseThrow(String key, Class<T> type, RuntimeException exception) {
+        T variable = getVariable(key, type);
+        if (variable == null) {
+            throw exception;
+        }
+        return variable;
     }
 
     @Nullable

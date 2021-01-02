@@ -1,5 +1,6 @@
 package com.github.kabal163.statemachine.api;
 
+import com.github.kabal163.statemachine.exception.ContextVariableNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -109,5 +110,28 @@ class StateContextTest {
         assertThatThrownBy(() -> context.getVariable("key", Integer.class))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Incorrect type specified for variable");
+    }
+
+    @Test
+    @DisplayName("Given key doesn't exist in StateContext " +
+            "When call getVariableOrElseThrow(String, Class) " +
+            "Then throws ContextVariableNotFoundException")
+    void givenKeyDoesntExistInStateContext_whenCallGetVariableOrElseThrow_thenThrowsContextVariableNotFoundException_1() {
+        StateContext<TestState, TestEvent> context = new StateContext<>(statefulObject, EVENT, new HashMap<>());
+        assertThatThrownBy(() -> context.getVariableOrElseThrow("nonExistent", String.class))
+                .isInstanceOf(ContextVariableNotFoundException.class)
+                .hasMessageContaining("Expected that StateContext contains a key but it doesn't! The key: ");
+    }
+
+    @Test
+    @DisplayName("Given key doesn't exist in StateContext " +
+            "When call getVariableOrElseThrow(String, Class, RuntimeException) with ContextVariableNotFoundException " +
+            "Then throws ContextVariableNotFoundException")
+    void givenKeyDoesntExistInStateContext_whenCallGetVariableOrElseThrow_thenThrowsContextVariableNotFoundException_2() {
+        final RuntimeException expected = new ContextVariableNotFoundException("My custom exception");
+        StateContext<TestState, TestEvent> context = new StateContext<>(statefulObject, EVENT, new HashMap<>());
+        assertThatThrownBy(() -> context.getVariableOrElseThrow("nonExistent", String.class, expected))
+                .isInstanceOf(expected.getClass())
+                .hasMessageContaining(expected.getMessage());
     }
 }
